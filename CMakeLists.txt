@@ -46,9 +46,6 @@ endif()
 # Create a custom target for schema generation
 add_custom_target(generate_schema ALL DEPENDS ${SCHEMA_HEADER})
 
-# --- sqlpp23 (header-only library as submodule) ---
-add_subdirectory(thirdparty/sqlpp23 EXCLUDE_FROM_ALL)
-
 # --- Find Dependencies ---
 # scikit-build-core helps CMake find the correct Python
 find_package(Python 3.7 COMPONENTS Interpreter Development REQUIRED)
