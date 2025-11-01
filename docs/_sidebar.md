@@ -1,5 +1,8 @@
 <!-- docs/_sidebar.md -->
 
+<!-- Note: Links use hash anchors for single-page structure.
+     If documentation grows to multiple pages, update links accordingly. -->
+
 * [Home](/)
 
 * Getting Started
