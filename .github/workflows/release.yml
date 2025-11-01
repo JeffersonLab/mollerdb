@@ -53,6 +53,19 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew install libpq libpqxx apache-arrow
+        # Set environment variables for Homebrew-installed libraries
+        export LIBPQ_PREFIX="$(brew --prefix libpq)"
+        export ARROW_PREFIX="$(brew --prefix apache-arrow)"
+        export LDFLAGS="-L${LIBPQ_PREFIX}/lib -L${ARROW_PREFIX}/lib $LDFLAGS"
+        export CPPFLAGS="-I${LIBPQ_PREFIX}/include -I${ARROW_PREFIX}/include $CPPFLAGS"
+        export PKG_CONFIG_PATH="${LIBPQ_PREFIX}/lib/pkgconfig:${ARROW_PREFIX}/lib/pkgconfig:$PKG_CONFIG_PATH"
+        export CMAKE_PREFIX_PATH="${LIBPQ_PREFIX}:${ARROW_PREFIX}:$CMAKE_PREFIX_PATH"
+        echo "LIBPQ_PREFIX=${LIBPQ_PREFIX}" >> $GITHUB_ENV
+        echo "ARROW_PREFIX=${ARROW_PREFIX}" >> $GITHUB_ENV
+        echo "LDFLAGS=${LDFLAGS}" >> $GITHUB_ENV
+        echo "CPPFLAGS=${CPPFLAGS}" >> $GITHUB_ENV
+        echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}" >> $GITHUB_ENV
+        echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
 
     - name: Install Python build tools
       run: |
