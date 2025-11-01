@@ -1,6 +1,5 @@
 #include "mollerdb/Database.h"
 #include <sqlpp23/postgresql/postgresql.h>
-#include <libpq-fe.h>
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -30,65 +29,104 @@ private:
     static std::shared_ptr<sql::connection_config> parse_connection_string(const std::string& conn_string) {
         auto config = std::make_shared<sql::connection_config>();
         
-        // Use libpq's PQconninfoParse to properly parse the connection string
-        // This handles all PostgreSQL connection string features including:
-        // - Quoted values (e.g., password='my pass')
-        // - Escaped characters
-        // - All libpq connection parameters
-        char* errmsg = nullptr;
-        PQconninfoOption* opts = PQconninfoParse(conn_string.c_str(), &errmsg);
+        // Parse connection string (PostgreSQL libpq format)
+        // Supported format: "key1=value1 key2=value2 ..."
+        // Values can be quoted with single quotes to include spaces or special characters
+        // Single quotes in values must be escaped as \'
         
-        if (opts == nullptr) {
-            std::string error_message = errmsg ? std::string(errmsg) : "unknown error";
-            if (errmsg) PQfreemem(errmsg);
-            throw std::invalid_argument("Invalid connection string: " + error_message);
-        }
+        auto trim = [](const std::string& str) -> std::string {
+            auto first = str.find_first_not_of(" \t");
+            auto last = str.find_last_not_of(" \t");
+            if (first != std::string::npos && last != std::string::npos) {
+                return str.substr(first, last - first + 1);
+            }
+            return "";
+        };
         
-        // Use RAII to ensure opts is always freed
-        struct OptsGuard {
-            PQconninfoOption* opts;
-            ~OptsGuard() { if (opts) PQconninfoFree(opts); }
-        } guard{opts};
+        size_t pos = 0;
+        const std::string& str = conn_string;
         
-        // Extract parsed values into sqlpp23's connection_config
-        for (PQconninfoOption* opt = opts; opt->keyword != nullptr; ++opt) {
-            if (opt->val == nullptr) continue;
+        while (pos < str.length()) {
+            // Skip whitespace
+            while (pos < str.length() && (str[pos] == ' ' || str[pos] == '\t')) {
+                ++pos;
+            }
+            if (pos >= str.length()) break;
             
-            std::string keyword = opt->keyword;
-            std::string value = opt->val;
+            // Find the key (everything before '=')
+            size_t eq_pos = str.find('=', pos);
+            if (eq_pos == std::string::npos) break;
             
+            std::string key = trim(str.substr(pos, eq_pos - pos));
+            pos = eq_pos + 1;
+            
+            // Skip whitespace after '='
+            while (pos < str.length() && (str[pos] == ' ' || str[pos] == '\t')) {
+                ++pos;
+            }
+            if (pos >= str.length()) break;
+            
+            // Parse the value (which may be quoted)
+            std::string value;
+            
+            if (str[pos] == '\'') {
+                // Quoted value - parse until closing quote, handling escaped quotes
+                ++pos; // Skip opening quote
+                while (pos < str.length()) {
+                    if (str[pos] == '\\' && pos + 1 < str.length() && str[pos + 1] == '\'') {
+                        // Escaped quote
+                        value += '\'';
+                        pos += 2;
+                    } else if (str[pos] == '\'') {
+                        // End of quoted value
+                        ++pos;
+                        break;
+                    } else {
+                        value += str[pos];
+                        ++pos;
+                    }
+                }
+            } else {
+                // Unquoted value - read until space or end of string
+                while (pos < str.length() && str[pos] != ' ' && str[pos] != '\t') {
+                    value += str[pos];
+                    ++pos;
+                }
+            }
+            
+            // Process the key-value pair
             try {
-                if (keyword == "host") {
+                if (key == "host") {
                     config->host = value;
-                } else if (keyword == "hostaddr") {
+                } else if (key == "hostaddr") {
                     config->hostaddr = value;
-                } else if (keyword == "port") {
+                } else if (key == "port") {
                     config->port = std::stoul(value);
-                } else if (keyword == "dbname") {
+                } else if (key == "dbname") {
                     config->dbname = value;
-                } else if (keyword == "user") {
+                } else if (key == "user") {
                     config->user = value;
-                } else if (keyword == "password") {
+                } else if (key == "password") {
                     config->password = value;
-                } else if (keyword == "connect_timeout") {
+                } else if (key == "connect_timeout") {
                     config->connect_timeout = std::stoul(value);
-                } else if (keyword == "client_encoding") {
+                } else if (key == "client_encoding") {
                     config->client_encoding = value;
-                } else if (keyword == "options") {
+                } else if (key == "options") {
                     config->options = value;
-                } else if (keyword == "application_name") {
+                } else if (key == "application_name") {
                     config->application_name = value;
-                } else if (keyword == "fallback_application_name") {
+                } else if (key == "fallback_application_name") {
                     config->fallback_application_name = value;
-                } else if (keyword == "keepalives") {
+                } else if (key == "keepalives") {
                     config->keepalives = parse_bool(value);
-                } else if (keyword == "keepalives_idle") {
+                } else if (key == "keepalives_idle") {
                     config->keepalives_idle = std::stoul(value);
-                } else if (keyword == "keepalives_interval") {
+                } else if (key == "keepalives_interval") {
                     config->keepalives_interval = std::stoul(value);
-                } else if (keyword == "keepalives_count") {
+                } else if (key == "keepalives_count") {
                     config->keepalives_count = std::stoul(value);
-                } else if (keyword == "sslmode") {
+                } else if (key == "sslmode") {
                     if (value == "disable") {
                         config->sslmode = sql::connection_config::sslmode_t::disable;
                     } else if (value == "allow") {
@@ -102,27 +140,28 @@ private:
                     } else if (value == "verify-full") {
                         config->sslmode = sql::connection_config::sslmode_t::verify_full;
                     }
-                } else if (keyword == "sslcompression") {
+                } else if (key == "sslcompression") {
                     config->sslcompression = parse_bool(value);
-                } else if (keyword == "sslcert") {
+                } else if (key == "sslcert") {
                     config->sslcert = value;
-                } else if (keyword == "sslkey") {
+                } else if (key == "sslkey") {
                     config->sslkey = value;
-                } else if (keyword == "sslrootcert") {
+                } else if (key == "sslrootcert") {
                     config->sslrootcert = value;
-                } else if (keyword == "sslcrl") {
+                } else if (key == "sslcrl") {
                     config->sslcrl = value;
-                } else if (keyword == "requirepeer") {
+                } else if (key == "requirepeer") {
                     config->requirepeer = value;
-                } else if (keyword == "krbsrvname") {
+                } else if (key == "krbsrvname") {
                     config->krbsrvname = value;
-                } else if (keyword == "service") {
+                } else if (key == "service") {
                     config->service = value;
                 }
+                // Silently ignore unknown keys for forward compatibility
             } catch (const std::invalid_argument& e) {
-                throw std::invalid_argument("Invalid value for '" + keyword + "': " + std::string(e.what()));
+                throw std::invalid_argument("Invalid value for '" + key + "': " + std::string(e.what()));
             } catch (const std::out_of_range& e) {
-                throw std::invalid_argument("Value out of range for '" + keyword + "': " + value);
+                throw std::invalid_argument("Value out of range for '" + key + "': " + value);
             }
         }
         
