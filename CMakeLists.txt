@@ -4,6 +4,48 @@ project(mollerdb LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# --- Generate Schema Files from DBML ---
+set(DBML_FILE "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/MOLLER-parity-schema/qwparity_schema.dbml")
+set(SQL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/schema/qwparity_schema.sql")
+set(SCHEMA_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include/mollerdb/schema/qwparity_schema.h")
+set(CUSTOM_TYPES_FILE "${CMAKE_CURRENT_SOURCE_DIR}/schema/custom_types.csv")
+
+# Find dbml2sql and python3
+find_program(DBML2SQL dbml2sql)
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
+# Generate SQL from DBML
+if(DBML2SQL)
+    add_custom_command(
+        OUTPUT ${SQL_FILE}
+        COMMAND ${DBML2SQL} --postgresql -o ${SQL_FILE} ${DBML_FILE}
+        DEPENDS ${DBML_FILE}
+        COMMENT "Generating PostgreSQL SQL from DBML schema..."
+    )
+else()
+    message(WARNING "dbml2sql not found. Install with: npm install -g @dbml/cli")
+endif()
+
+# Generate C++ headers from SQL
+set(SQLPP23_DDL2CPP "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/sqlpp23/scripts/sqlpp23-ddl2cpp")
+if(EXISTS ${SQLPP23_DDL2CPP})
+    add_custom_command(
+        OUTPUT ${SCHEMA_HEADER}
+        COMMAND ${Python3_EXECUTABLE} ${SQLPP23_DDL2CPP}
+                --path-to-ddl ${SQL_FILE}
+                --namespace moller::db::schema
+                --path-to-header ${SCHEMA_HEADER}
+                --path-to-custom-types ${CUSTOM_TYPES_FILE}
+        DEPENDS ${SQL_FILE} ${CUSTOM_TYPES_FILE}
+        COMMENT "Generating C++ headers from SQL schema..."
+    )
+else()
+    message(WARNING "sqlpp23-ddl2cpp script not found. Schema headers will not be generated.")
+endif()
+
+# Create a custom target for schema generation
+add_custom_target(generate_schema ALL DEPENDS ${SCHEMA_HEADER})
+
 # --- sqlpp23 (header-only library as submodule) ---
 add_subdirectory(thirdparty/sqlpp23 EXCLUDE_FROM_ALL)
 
@@ -28,6 +70,7 @@ add_subdirectory(thirdparty/sqlpp23)
 add_library(mollerdb_core SHARED
     src/Database.cpp
 )
+add_dependencies(mollerdb_core generate_schema)
 target_include_directories(mollerdb_core PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/sqlpp23/include"

@@ -209,3 +209,7 @@ __marimo__/
 # CodeQL
 # Symlink created by CodeQL analysis tool during security scanning
 _codeql_detected_source_root
+
+# Generated schema files
+schema/qwparity_schema.sql
+include/mollerdb/schema/qwparity_schema.h

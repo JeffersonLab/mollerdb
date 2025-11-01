@@ -38,14 +38,13 @@ The SDK design was informed by a proposed redesign of the underlying database sc
 
 ## 4. Current Status and Next Steps
 
-**Status:** **Blocked by Agent Tool Failure.**
+**Status:** Schema integration is complete. The database schema from MOLLER-parity-schema is integrated as a git submodule and C++ headers are generated during the build process.
 
-The complete file structure and content for the initial project skeleton have been defined and agreed upon. However, the agent's attempts to commit these files to the `JeffersonLab/mollerdb` repository have repeatedly failed due to a series of tool errors (`mcp_github_push_files`, `githubread`, etc.).
-
-**The repository on GitHub is presumed to be empty or in an incorrect state.** The agent cannot verify its contents.
-
-**Immediate Next Step:**
-- **Action for User (`wdconinc`)**: Manually create the following files with their agreed-upon content in the `JeffersonLab/mollerdb` repository. This is necessary to unblock the project. The final agreed-upon file list and contents were provided in the last interaction before this summary was requested.
+**Documentation Structure:**
+- Place topical documentation files in the `docs/` directory
+- Keep high-level project overview in `README.md`
+- Keep agent-specific guidance in `AGENTS.md`
+- See `docs/SCHEMA_INTEGRATION.md` for detailed information on the schema integration approach
 
 **Once the repository is populated, the project can proceed with:**
 1.  **Implementing Core Logic**: Flesh out the `src/Database.cpp` file to perform actual database queries using `sqlpp23`.

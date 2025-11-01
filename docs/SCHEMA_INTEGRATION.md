@@ -15,18 +15,22 @@ The implemented solution uses a **git submodule approach with generated artifact
 
 ### 2. SQL Generation
 - Convert DBML to PostgreSQL SQL using `dbml2sql` tool from `@dbml/cli`
-- Generated SQL is stored in `schema/qwparity_schema.sql`
+- SQL is generated during CMake build in `schema/qwparity_schema.sql`
 - Custom type mappings in `schema/custom_types.csv` handle PostgreSQL ENUMs
+- Generated SQL is excluded from version control
 
 ### 3. C++ Header Generation  
 - Added `thirdparty/sqlpp23` as a git submodule for type-safe SQL in C++
-- Use `sqlpp23-ddl2cpp` to generate C++ headers from SQL
+- Use `sqlpp23-ddl2cpp` to generate C++ headers from SQL during CMake build
 - Generated header is `include/mollerdb/schema/qwparity_schema.h`
 - Provides compile-time type safety for database queries
+- Generated header is excluded from version control
 
-### 4. Automation
-- Created `scripts/generate_schema.sh` to automate the entire process
-- Run this script whenever the schema submodule is updated
+### 4. Build-time Generation
+- CMake automatically generates both SQL and C++ headers during the build process
+- No manual script execution needed for normal development
+- Files are generated in the source tree for IDE integration
+- `scripts/generate_schema.sh` retained for manual testing if needed
 
 ## Architecture Benefits
 
@@ -34,7 +38,8 @@ The implemented solution uses a **git submodule approach with generated artifact
 2. **Version Control**: Submodule tracks specific schema versions
 3. **Type Safety**: sqlpp23 provides compile-time SQL validation
 4. **Easy Updates**: Simple workflow to pull schema changes
-5. **Build Independence**: Generated files are committed, so builds don't require Node.js/Python
+5. **Build-time Generation**: Schema artifacts generated automatically during build
+6. **Clean Repository**: Generated files excluded from version control
 
 ## Update Workflow
 
@@ -46,17 +51,17 @@ cd thirdparty/MOLLER-parity-schema
 git pull origin main
 cd ../..
 
-# 2. Regenerate files
-./scripts/generate_schema.sh
-
-# 3. Commit changes
-git add thirdparty/MOLLER-parity-schema schema/ include/mollerdb/schema/
+# 2. Commit submodule update
+git add thirdparty/MOLLER-parity-schema
 git commit -m "Update database schema to version X.Y.Z"
+
+# 3. Rebuild to regenerate schema files
+pip install . --verbose
 ```
 
 ## Alternative Approaches Considered
 
-1. **Git Submodule Only**: Would require generating SQL/C++ headers during build (complex)
+1. **Build-time Generation**: Chosen approach - generates during CMake build
 2. **Download from Artifacts**: Artifacts expire after 90 days (unreliable)
 3. **Manual Copy**: No version tracking, easy to get out of sync
 4. **Schema in mollerdb**: Duplication, harder to maintain
@@ -76,13 +81,22 @@ git commit -m "Update database schema to version X.Y.Z"
 ## Files Added/Modified
 
 - `.gitmodules`: Submodule configurations
+- `.gitignore`: Excludes generated schema files
 - `thirdparty/MOLLER-parity-schema/`: Schema source (submodule)
 - `thirdparty/sqlpp23/`: SQL library (submodule)
-- `schema/qwparity_schema.sql`: Generated PostgreSQL schema
 - `schema/custom_types.csv`: Type mappings for sqlpp23
 - `schema/README.md`: Schema integration documentation
+- `scripts/generate_schema.sh`: Manual generation script (optional)
+- `docs/SCHEMA_INTEGRATION.md`: This documentation file
+- `CMakeLists.txt`: Schema generation during build
+- `.github/workflows/build.yml`: Updated to checkout submodules
+- `README.md`: Added schema integration overview
+- `AGENTS.md`: Updated with documentation structure guidance
+
+## Generated Files (not in repository)
+
+- `schema/qwparity_schema.sql`: Generated PostgreSQL schema
 - `include/mollerdb/schema/qwparity_schema.h`: Generated C++ headers
-- `scripts/generate_schema.sh`: Automation script
 - `CMakeLists.txt`: Updated to include sqlpp23
 - `.github/workflows/build.yml`: Updated to checkout submodules
 - `README.md`: Added schema integration overview
