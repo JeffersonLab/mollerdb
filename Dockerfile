@@ -49,12 +49,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dbml-cli for database schema generation
-# SECURITY NOTE: SSL verification is temporarily disabled to handle certificate issues
-# in build environments. For production, ensure proper certificate configuration.
-# This workaround is safe when using trusted network infrastructure.
-RUN npm config set strict-ssl false && \
-    npm install -g @dbml/cli && \
-    npm config set strict-ssl true
+# SECURITY NOTE: SSL verification is enforced for all npm operations.
+# If you encounter certificate errors, ensure your build environment has proper CA certificates
+# or use a trusted internal npm registry. Do NOT disable SSL verification in production or development.
+RUN npm install -g @dbml/cli
 
 # Add Apache Arrow APT repository
 # Arrow is used for efficient zero-copy data transfer between C++ and Python
