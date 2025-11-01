@@ -83,7 +83,8 @@ Basic example of connecting to the database and querying data:
 import mollerdb
 
 # Connect to the database
-db = mollerdb.Database("host=localhost dbname=moller user=myuser password=mypass")
+# Note: Use single quotes around values that contain spaces or special characters
+db = mollerdb.Database("host=localhost dbname=moller user=myuser password='my secure password'")
 
 # Query data (returns pandas DataFrame via Apache Arrow)
 results = db.query("SELECT * FROM runs WHERE run_number > 1000")
@@ -100,7 +101,8 @@ Basic example of using the C++ library:
 
 int main() {
     // Connect to the database
-    mollerdb::Database db("host=localhost dbname=moller user=myuser password=mypass");
+    // Note: Use single quotes around values that contain spaces or special characters
+    mollerdb::Database db("host=localhost dbname=moller user=myuser password='my secure password'");
     
     // Query data
     auto results = db.query("SELECT * FROM runs WHERE run_number > 1000");
@@ -124,6 +126,24 @@ g++ -std=c++23 -o my_program my_program.cpp -lmollerdb -larrow
 #### Constructor
 
 - `Database(const std::string& connection_string)` - Create a database connection
+
+  The connection string uses the standard PostgreSQL libpq format. All PostgreSQL connection parameters are supported, including:
+  - `host` - Database server hostname
+  - `port` - Database server port (default: 5432)
+  - `dbname` - Database name
+  - `user` - Database user
+  - `password` - User password
+  - SSL parameters (`sslmode`, `sslcert`, `sslkey`, etc.)
+  - Connection timeout and keepalive settings
+  
+  **Note**: Values containing spaces or special characters should be quoted using single quotes (e.g., `password='my pass word'`).
+  
+  Examples:
+  ```
+  "host=localhost dbname=moller user=myuser password=mypass"
+  "host=localhost dbname=moller user=myuser password='pass with spaces'"
+  "host=db.example.com port=5433 dbname=moller user=myuser sslmode=require"
+  ```
 
 #### Methods
 
