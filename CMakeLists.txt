@@ -23,7 +23,7 @@ if(DBML2SQL)
         COMMENT "Generating PostgreSQL SQL from DBML schema..."
     )
 else()
-    message(WARNING "dbml2sql not found. Install with: npm install -g @dbml/cli")
+    message(FATAL_ERROR "dbml2sql not found. Install with: npm install -g @dbml/cli")
 endif()
 
 # Generate C++ headers from SQL
