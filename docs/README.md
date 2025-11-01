@@ -78,7 +78,7 @@ make
 - Ubuntu 24.04 base system
 - GCC 14 with full C++23 support (required for sqlpp23)
 - CMake 3.28+
-- Node.js 18 and dbml-cli for database schema generation
+- Node.js (from Ubuntu 24.04 repositories) and dbml-cli for database schema generation
 - PostgreSQL client libraries (libpq-dev)
 - Python 3.12 with pip
 - Python build tools: scikit-build-core, pybind11, pyparsing
