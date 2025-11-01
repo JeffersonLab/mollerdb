@@ -23,7 +23,7 @@ def test_database_constructor_with_invalid_connection(invalid_connection_string)
     
     # Should raise RuntimeError for connection failure
     with pytest.raises(RuntimeError):
-        db = mollerdb.Database(invalid_connection_string)
+        mollerdb.Database(invalid_connection_string)
 
 
 def test_database_has_get_main_detector_results_method():
