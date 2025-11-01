@@ -20,15 +20,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest] # TODO re-enable: , macos-latest]
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      # Use recursive if pybind11 or other dependencies are git submodules
-      # with:
-      #   submodules: 'recursive'
+      with:
+        submodules: 'recursive'
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -40,7 +39,14 @@ jobs:
       run: |
         set -euo pipefail
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends lsb-release wget apt-transport-https ca-certificates gnupg
+        sudo apt-get install -y --no-install-recommends lsb-release wget apt-transport-https ca-certificates gnupg software-properties-common
+
+        # Add Ubuntu toolchain PPA for GCC 14 (required for C++23 support)
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
+
+        # Install GCC 14 for C++23 support (sqlpp23 requires "deducing this" feature)
+        sudo apt-get install -y --no-install-recommends gcc-14 g++-14
 
         # Register Apache Arrow APT repository (see https://arrow.apache.org/install/ for details)
         wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
@@ -48,21 +54,63 @@ jobs:
         rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
 
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends libpq-dev libpqxx-dev libarrow-dev
+        sudo apt-get install -y --no-install-recommends libpq-dev libarrow-dev
+
+        # Set GCC 14 as the default compiler
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
+        sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-14 100
+        sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-14 100
 
     - name: Install C++ dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install libpq libpqxx apache-arrow
+        brew install libpq apache-arrow
+
+        # Save prefixes
+        LIBPQ_PREFIX="$(brew --prefix libpq)"
+        ARROW_PREFIX="$(brew --prefix apache-arrow)"
+
+        # Export useful env vars for CMake and builds
+        echo "LIBPQ_PREFIX=${LIBPQ_PREFIX}" >> $GITHUB_ENV
+        echo "ARROW_PREFIX=${ARROW_PREFIX}" >> $GITHUB_ENV
+
+        # Add pkg-config paths so CMake/meson/autotools can find .pc files
+        if [ -d "${LIBPQ_PREFIX}/lib/pkgconfig" ]; then
+          echo "PKG_CONFIG_PATH=${LIBPQ_PREFIX}/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+        fi
+        if [ -n "${ARROW_PREFIX}" ] && [ -d "${ARROW_PREFIX}/lib/pkgconfig" ]; then
+          echo "PKG_CONFIG_PATH=${ARROW_PREFIX}/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+        fi
+
+        # Provide a CMAKE_PREFIX_PATH containing both prefixes
+        CMAKE_PATHS="${LIBPQ_PREFIX}"
+        if [ -n "${ARROW_PREFIX}" ]; then
+          CMAKE_PATHS="${CMAKE_PATHS};${ARROW_PREFIX}"
+        fi
+            echo "CMAKE_PREFIX_PATH=${CMAKE_PATHS}" >> $GITHUB_ENV
+
+    - name: Set environment for libpq (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        echo "LDFLAGS=-L$(brew --prefix libpq)/lib" >> $GITHUB_ENV
+        echo "CPPFLAGS=-I$(brew --prefix libpq)/include" >> $GITHUB_ENV
+        echo "PATH=$(brew --prefix libpq)/bin:$PATH" >> $GITHUB_ENV
 
     - name: Install Python build tools
       run: |
         python -m pip install --upgrade pip
-        pip install scikit-build-core pybind11 pytest wheel
+        # Install build dependencies explicitly for development workflow
+        pip install scikit-build-core pybind11
+        # Install testing tools
+        pip install pytest wheel
 
     - name: Build and install Python package
       run: |
         pip install . --verbose
+      env:
+        CC: ${{ runner.os == 'Linux' && 'gcc-14' || 'gcc' }}
+        CXX: ${{ runner.os == 'Linux' && 'g++-14' || 'g++' }}
 
     - name: Run tests
       run: |

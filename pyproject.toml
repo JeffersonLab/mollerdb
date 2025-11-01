@@ -1,5 +1,5 @@
 [build-system]
-requires = ["scikit-build-core>=0.7.0"]
+requires = ["scikit-build-core>=0.7.0", "pybind11"]
 build-backend = "scikit_build_core.build"
 
 [project]
@@ -16,6 +16,10 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: C++",
 ]
+
+[project.optional-dependencies]
+test = ["pytest"]
+dev = ["pytest", "wheel"]
 
 [tool.scikit-build]
 # Tell scikit-build where the CMake project is located
