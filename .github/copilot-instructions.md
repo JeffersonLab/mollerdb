@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-The **mollerdb** project is a high-performance, dual-language Software Development Kit (SDK) for accessing the MOLLER experiment's analysis database. It provides convenient access to the database for collaborators who may not be proficient in SQL.
+The **mollerdb** project is a high-performance, dual-language Software Development Kit (SDK) for accessing the MOLLER experiment's analysis database. MOLLER (Measurement Of a Lepton Lepton Electroweak Reaction) is a precision physics experiment at Jefferson Lab that will measure parity-violating asymmetry in electron-electron scattering. This SDK provides convenient access to the experiment's database for collaborators who may not be proficient in SQL.
 
 ## Architecture
 
@@ -57,7 +57,7 @@ git submodule update --init --recursive
 
 ### Code Style
 - Follow the existing code style in each file
-- C++ code should use modern C++ practices (C++17 or later)
+- C++ code uses C++23 standard (as specified in CMakeLists.txt)
 - Python code should follow PEP 8 guidelines
 - Keep the C++ core focused on database operations
 - Keep Python bindings thin and delegate to C++ core
@@ -95,7 +95,7 @@ The SDK interacts with a PostgreSQL database designed for the MOLLER experiment.
 - scikit-build-core (build)
 - pybind11 (build)
 - pyarrow (runtime - for Arrow table interaction)
-- pandas (optional - for DataFrame conversion)
+- pandas (optional - for DataFrame conversion in user code and examples)
 
 ## CI/CD
 
