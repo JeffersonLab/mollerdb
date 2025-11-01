@@ -67,6 +67,28 @@ set(BUILD_SQLCIPHER_CONNECTOR OFF CACHE BOOL "Build SQLCipher Connector" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "Build tests" FORCE)
 add_subdirectory(thirdparty/sqlpp23)
 
+# --- Testing ---
+# Enable testing for this project (separate from sqlpp23's BUILD_TESTING)
+option(BUILD_MOLLERDB_TESTS "Build mollerdb tests" ON)
+
+if(BUILD_MOLLERDB_TESTS)
+    enable_testing()
+    
+    # Fetch Google Test
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.15.2
+    )
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+    
+    # Add tests subdirectory
+    add_subdirectory(tests/cpp)
+endif()
+
 # --- Core C++ Library ---
 add_library(mollerdb_core SHARED
     src/Database.cpp
