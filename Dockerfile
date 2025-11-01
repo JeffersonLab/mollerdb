@@ -61,7 +61,12 @@ RUN npm install -g @dbml/cli
 # SECURITY: --no-check-certificate is used here to handle certificate issues in build environments.
 # In production, ensure proper SSL/TLS configuration and remove this flag.
 RUN wget --no-check-certificate https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb || \
-    (echo "WARNING: Failed to download Arrow APT source. Arrow packages may not be available." && touch /tmp/arrow-download-failed)
+    (echo "WARNING: Failed to download Arrow APT source. Arrow packages may not be available." && touch /tmp/arrow-download-failed); \
+    if [ ! -s apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb ]; then \
+        echo "WARNING: Downloaded Arrow APT source is missing or empty. Skipping Arrow installation."; \
+        touch /tmp/arrow-download-failed; \
+        rm -f apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb; \
+    fi
 
 # Install PostgreSQL client libraries and Apache Arrow development libraries
 # If Arrow download failed, skip Arrow installation
