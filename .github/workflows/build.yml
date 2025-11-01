@@ -26,9 +26,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      # Use recursive if pybind11 or other dependencies are git submodules
-      # with:
-      #   submodules: 'recursive'
+      with:
+        submodules: 'recursive'
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -48,12 +47,12 @@ jobs:
         rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
 
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends libpq-dev libpqxx-dev libarrow-dev
+        sudo apt-get install -y --no-install-recommends libpq-dev libarrow-dev
 
     - name: Install C++ dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install libpq libpqxx apache-arrow
+        brew install libpq apache-arrow
 
     - name: Install Python build tools
       run: |
