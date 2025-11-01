@@ -8,15 +8,6 @@ namespace sql = sqlpp::postgresql;
 
 class moller::db::Database::Impl {
 private:
-    static std::string trim(const std::string& str) {
-        auto first = str.find_first_not_of(" \t");
-        auto last = str.find_last_not_of(" \t");
-        if (first != std::string::npos && last != std::string::npos) {
-            return str.substr(first, last - first + 1);
-        }
-        return "";
-    }
-
     static std::shared_ptr<sql::connection_config> parse_connection_string(const std::string& conn_string) {
         auto config = std::make_shared<sql::connection_config>();
         
@@ -30,6 +21,16 @@ private:
         // user, password, port) as spaces are unlikely to appear in these values.
         // TODO: Create GitHub issue to implement proper quote handling for full 
         // PostgreSQL connection string support (see libpq documentation).
+        
+        auto trim = [](const std::string& str) -> std::string {
+            auto first = str.find_first_not_of(" \t");
+            auto last = str.find_last_not_of(" \t");
+            if (first != std::string::npos && last != std::string::npos) {
+                return str.substr(first, last - first + 1);
+            }
+            return "";
+        };
+        
         size_t pos = 0;
         std::string str = conn_string;
         while (pos < str.length()) {
