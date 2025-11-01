@@ -34,6 +34,15 @@ jobs:
     - name: Install C++ dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
+        set -euo pipefail
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends lsb-release wget apt-transport-https ca-certificates gnupg
+
+        # Register Apache Arrow APT repository (see https://arrow.apache.org/install/ for details)
+        wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+        sudo apt-get install -y ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+        rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends libpq-dev libpqxx-dev libarrow-dev
 
