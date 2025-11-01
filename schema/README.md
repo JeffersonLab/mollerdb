@@ -68,6 +68,12 @@ This mollerdb repository consumes the PostgreSQL version of the schema.
 
 PostgreSQL ENUM types are mapped to `sqlpp::text` in C++ for simplicity. The mappings are defined in `custom_types.csv`.
 
+### Purpose of custom_types.csv
+
+The MOLLER database schema uses PostgreSQL ENUM types for various fields (e.g., `runlet_full_run_enum`, `analysis_beam_mode_enum`). Since sqlpp23 does not natively support PostgreSQL ENUM types, the `custom_types.csv` file provides a mapping that tells the `sqlpp23-ddl2cpp` code generator how to represent these types in C++.
+
+Without this mapping, the schema generation would fail when encountering ENUM types. The file is passed to sqlpp23-ddl2cpp via the `--path-to-custom-types` flag during the build process.
+
 ### Format of custom_types.csv
 
 The file follows the sqlpp23-ddl2cpp custom types format:
@@ -81,6 +87,16 @@ text,runlet_full_run_enum,analysis_beam_mode_enum
 ```
 
 This maps PostgreSQL ENUMs to C++ `std::optional<::sqlpp::text>` for maximum compatibility.
+
+### How It's Used
+
+During the CMake build process:
+1. The DBML schema is converted to PostgreSQL SQL (which includes ENUM type definitions)
+2. The `sqlpp23-ddl2cpp` script reads the SQL and the `custom_types.csv` file
+3. For each PostgreSQL ENUM type listed in the CSV, the generator creates a C++ `text` field instead of failing
+4. The generated C++ header allows you to read/write ENUM values as strings
+
+This approach provides maximum flexibility and compatibility while maintaining type information in the database.
 
 ## sqlpp23 Integration
 

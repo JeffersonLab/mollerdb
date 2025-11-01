@@ -84,7 +84,7 @@ pip install . --verbose
 - `.gitignore`: Excludes generated schema files
 - `thirdparty/MOLLER-parity-schema/`: Schema source (submodule)
 - `thirdparty/sqlpp23/`: SQL library (submodule)
-- `schema/custom_types.csv`: Type mappings for sqlpp23
+- `schema/custom_types.csv`: Type mappings for sqlpp23 (maps PostgreSQL ENUMs to C++ types)
 - `schema/README.md`: Schema integration documentation
 - `scripts/generate_schema.sh`: Manual generation script (optional)
 - `docs/SCHEMA_INTEGRATION.md`: This documentation file
@@ -92,6 +92,14 @@ pip install . --verbose
 - `.github/workflows/build.yml`: Updated to checkout submodules
 - `README.md`: Added schema integration overview
 - `AGENTS.md`: Updated with documentation structure guidance
+
+### About custom_types.csv
+
+The `schema/custom_types.csv` file is a critical component of the schema generation process. It maps PostgreSQL ENUM types (which are not natively supported by sqlpp23) to C++ types. Without this file, the sqlpp23-ddl2cpp tool would fail when processing the MOLLER schema, which uses several ENUM types like `runlet_full_run_enum` and `analysis_beam_mode_enum`.
+
+The file uses a simple CSV format: `base_type,custom_type1,custom_type2,...` where all listed PostgreSQL types are mapped to the specified sqlpp23 base type (in our case, `text`). This allows ENUM values to be read and written as strings in C++ while maintaining the type constraints at the database level.
+
+See `schema/README.md` for detailed information on the format and usage of this file.
 
 ## Generated Files (not in repository)
 
