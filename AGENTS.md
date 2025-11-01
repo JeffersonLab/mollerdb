@@ -2,7 +2,7 @@
 
 This document summarizes the design, decisions, and current state of the `mollerdb` project as of the last interaction. It is intended to provide context for future AI agents or developers to seamlessly continue the work.
 
-**Last Updated:** 2025-11-01 14:47:47 UTC
+**Last Updated:** 2025-11-01 15:27:26 UTC
 **Last User:** wdconinc
 
 ## 1. Project Goal
@@ -18,7 +18,7 @@ The SDK will support both C++ and Python users without duplicating core logic. T
 
 ### 2.2. Key Technologies
 - **Build System**: `scikit-build-core` was chosen as the modern PEP 517 build backend. It will orchestrate the build process by invoking CMake. This replaces an earlier suggestion of using `setuptools` with a custom `CMakeBuild` class.
-- **C++ Database Driver**: `libpqxx` is the designated library for connecting to and interacting with the PostgreSQL database from C++.
+- **C++ Database Driver**: `sqlpp23` is the designated library for connecting to and interacting with the PostgreSQL database from C++. It was chosen over `libpqxx` because it is a header-only library with fewer dependencies, making it more platform-independent and easier to manage. It will be included as a git submodule.
 - **Python Bindings**: `pybind11` is the standard tool chosen to create the bindings between C++ and Python.
 - **Data Interchange Format**: **Apache Arrow** was identified as the critical technology for efficient, zero-copy data transfer between the C++ core and Python. C++ functions will query the database and construct Arrow `Table` objects, which can be converted to Pandas DataFrames in Python with minimal overhead.
 
@@ -48,7 +48,7 @@ The complete file structure and content for the initial project skeleton have be
 - **Action for User (`wdconinc`)**: Manually create the following files with their agreed-upon content in the `JeffersonLab/mollerdb` repository. This is necessary to unblock the project. The final agreed-upon file list and contents were provided in the last interaction before this summary was requested.
 
 **Once the repository is populated, the project can proceed with:**
-1.  **Implementing Core Logic**: Flesh out the `src/Database.cpp` file to perform actual database queries using `pqxx`.
-2.  **Integrating Apache Arrow**: Add the logic to build Arrow `Table` objects from the `pqxx::result` and implement the C++-to-Python type conversions for these tables.
-3.  **CI/CD Setup**: Create a GitHub Actions workflow to build and test the C++ and Python components on various platforms, ensuring all dependencies (`libpqxx`, `arrow`) are correctly handled.
+1.  **Implementing Core Logic**: Flesh out the `src/Database.cpp` file to perform actual database queries using `sqlpp23`.
+2.  **Integrating Apache Arrow**: Add the logic to build Arrow `Table` objects from the query results and implement the C++-to-Python type conversions for these tables.
+3.  **CI/CD Setup**: Create a GitHub Actions workflow to build and test the C++ and Python components on various platforms, ensuring all dependencies (`arrow`) are correctly handled. The workflow must ensure git submodules are checked out to provide `sqlpp23`.
 4.  **Documentation and Examples**: Expand the `README.md` and add an `examples/` directory showing how to use the SDK in both Python and C++.
