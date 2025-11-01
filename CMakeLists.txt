@@ -68,10 +68,10 @@ set(BUILD_TESTING OFF CACHE BOOL "Build tests" FORCE)
 add_subdirectory(thirdparty/sqlpp23)
 
 # --- Testing ---
-# Enable testing for this project (separate from sqlpp23's BUILD_TESTING)
-option(BUILD_MOLLERDB_TESTS "Build mollerdb tests" ON)
+# Enable testing for this project (only when mollerdb is the top-level project)
+option(BUILD_TESTING "Build mollerdb tests" ON)
 
-if(BUILD_MOLLERDB_TESTS)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     enable_testing()
     
     # Fetch Google Test

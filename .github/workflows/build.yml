@@ -132,7 +132,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        cmake .. -DBUILD_MOLLERDB_TESTS=ON
+        cmake .. -DBUILD_TESTING=ON
         cmake --build . --target test_database
         ctest --output-on-failure -V
       env:

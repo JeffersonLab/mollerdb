@@ -80,7 +80,7 @@ make
 **Building with Tests:**
 ```bash
 mkdir build && cd build
-cmake .. -DBUILD_MOLLERDB_TESTS=ON
+cmake .. -DBUILD_TESTING=ON
 cmake --build .
 ctest --output-on-failure
 ```
@@ -230,7 +230,7 @@ pytest tests/python/ -v
 **C++ Tests (Google Test via CTest):**
 ```bash
 mkdir build && cd build
-cmake .. -DBUILD_MOLLERDB_TESTS=ON
+cmake .. -DBUILD_TESTING=ON
 cmake --build .
 ctest --output-on-failure
 ```

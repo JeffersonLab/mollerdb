@@ -26,7 +26,7 @@ Build and run C++ tests using CMake and CTest:
 ```bash
 # From repository root
 mkdir build && cd build
-cmake .. -DBUILD_MOLLERDB_TESTS=ON
+cmake .. -DBUILD_TESTING=ON
 cmake --build .
 ctest --output-on-failure
 ```

@@ -239,7 +239,7 @@ The C++ tests use Google Test and are built with CMake:
 ```bash
 # Build with tests enabled
 mkdir build && cd build
-cmake .. -DBUILD_MOLLERDB_TESTS=ON
+cmake .. -DBUILD_TESTING=ON
 cmake --build .
 
 # Run all C++ tests
