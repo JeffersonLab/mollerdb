@@ -23,6 +23,21 @@ jobs:
         os: [ubuntu-latest] # TODO re-enable: , macos-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13']
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
@@ -123,7 +138,11 @@ jobs:
       env:
         CC: ${{ runner.os == 'Linux' && 'gcc-14' || 'gcc' }}
         CXX: ${{ runner.os == 'Linux' && 'g++-14' || 'g++' }}
-
+        PGHOST: localhost
+        PGPORT: 5432
+        PGDATABASE: test
+        PGUSER: test
+        PGPASSWORD: test
     - name: Build and install Python package
       run: |
         pip install . --verbose
@@ -134,3 +153,9 @@ jobs:
     - name: Run Python tests
       run: |
         pytest tests/python/ -v
+      env:
+        PGHOST: localhost
+        PGPORT: 5432
+        PGDATABASE: test
+        PGUSER: test
+        PGPASSWORD: test
