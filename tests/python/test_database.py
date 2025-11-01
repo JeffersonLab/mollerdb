@@ -14,7 +14,7 @@ def test_database_constructor_with_connection_string(mock_connection_string):
     # This will throw a RuntimeError since we can't connect to a real database
     # We're testing that the constructor accepts the string and attempts connection
     with pytest.raises(RuntimeError):
-        db = mollerdb.Database(mock_connection_string)
+        mollerdb.Database(mock_connection_string)
 
 
 def test_database_constructor_with_invalid_connection(invalid_connection_string):
