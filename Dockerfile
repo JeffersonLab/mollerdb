@@ -65,18 +65,20 @@ RUN wget --no-check-certificate https://packages.apache.org/artifactory/arrow/$(
     if [ ! -s apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb ]; then \
         echo "WARNING: Downloaded Arrow APT source is missing or empty. Skipping Arrow installation."; \
         touch /tmp/arrow-download-failed; \
-        rm -f apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb; \
-    fi
+RUN CODENAME=$(lsb_release --codename --short) && \
+    wget --no-check-certificate https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-${CODENAME}.deb || \
+    (echo "WARNING: Failed to download Arrow APT source. Arrow packages may not be available." && touch /tmp/arrow-download-failed)
 
 # Install PostgreSQL client libraries and Apache Arrow development libraries
 # If Arrow download failed, skip Arrow installation
-RUN apt-get update && \
+RUN CODENAME=$(lsb_release --codename --short) && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
     libpq-dev \
     && \
-    if [ ! -f /tmp/arrow-download-failed ] && [ -f apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb ]; then \
-        apt-get install -y ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb && \
-        rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb && \
+    if [ ! -f /tmp/arrow-download-failed ] && [ -f apache-arrow-apt-source-latest-${CODENAME}.deb ]; then \
+        apt-get install -y ./apache-arrow-apt-source-latest-${CODENAME}.deb && \
+        rm apache-arrow-apt-source-latest-${CODENAME}.deb && \
         apt-get update && \
         apt-get install -y --no-install-recommends libarrow-dev liblz4-dev libre2-dev; \
     else \
