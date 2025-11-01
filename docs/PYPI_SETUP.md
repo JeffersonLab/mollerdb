@@ -61,7 +61,7 @@ Once configured, releases are automatic:
 
 The workflow will automatically:
 - Build wheels for Linux and macOS
-- Build for Python 3.9-3.13
+- Build for Python 3.10-3.13
 - Publish to PyPI using trusted publishing
 
 ## Testing
