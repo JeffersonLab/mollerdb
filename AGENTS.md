@@ -70,6 +70,7 @@ mollerdb/
 pip install -e .
 ```
 
+>>>>>>> origin/main
 **C++ Library (via CMake):**
 ```bash
 mkdir build && cd build
