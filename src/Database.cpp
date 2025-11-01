@@ -8,12 +8,28 @@ namespace sql = sqlpp::postgresql;
 
 class moller::db::Database::Impl {
 private:
+    static std::string trim(const std::string& str) {
+        auto first = str.find_first_not_of(" \t");
+        auto last = str.find_last_not_of(" \t");
+        if (first != std::string::npos && last != std::string::npos) {
+            return str.substr(first, last - first + 1);
+        }
+        return "";
+    }
+
     static std::shared_ptr<sql::connection_config> parse_connection_string(const std::string& conn_string) {
         auto config = std::make_shared<sql::connection_config>();
         
         // Parse connection string (PostgreSQL libpq format)
         // Supported format: "key1=value1 key2=value2 ..."
         // Supported keys: host, dbname, user, password, port
+        // 
+        // NOTE: This parser does not handle quoted values (e.g., password='my pass').
+        // Values containing spaces or special characters will be incorrectly parsed.
+        // This limitation is acceptable for the keys currently parsed (host, dbname, 
+        // user, password, port) as spaces are unlikely to appear in these values.
+        // TODO: Create GitHub issue to implement proper quote handling for full 
+        // PostgreSQL connection string support (see libpq documentation).
         size_t pos = 0;
         std::string str = conn_string;
         while (pos < str.length()) {
@@ -23,25 +39,8 @@ private:
             size_t space_pos = str.find(' ', eq_pos);
             if (space_pos == std::string::npos) space_pos = str.length();
             
-            std::string key = str.substr(pos, eq_pos - pos);
-            std::string value = str.substr(eq_pos + 1, space_pos - eq_pos - 1);
-            
-            // Trim whitespace
-            auto first = key.find_first_not_of(" \t");
-            auto last = key.find_last_not_of(" \t");
-            if (first != std::string::npos && last != std::string::npos) {
-                key = key.substr(first, last - first + 1);
-            } else {
-                key.clear();
-            }
-            
-            first = value.find_first_not_of(" \t");
-            last = value.find_last_not_of(" \t");
-            if (first != std::string::npos && last != std::string::npos) {
-                value = value.substr(first, last - first + 1);
-            } else {
-                value.clear();
-            }
+            std::string key = trim(str.substr(pos, eq_pos - pos));
+            std::string value = trim(str.substr(eq_pos + 1, space_pos - eq_pos - 1));
             
             if (key == "host") config->host = value;
             else if (key == "dbname") config->dbname = value;
