@@ -67,6 +67,29 @@ jobs:
       run: |
         brew install libpq apache-arrow
 
+        # Save prefixes
+        LIBPQ_PREFIX="$(brew --prefix libpq)"
+        ARROW_PREFIX="$(brew --prefix apache-arrow)"
+
+        # Export useful env vars for CMake and builds
+        echo "LIBPQ_PREFIX=${LIBPQ_PREFIX}" >> $GITHUB_ENV
+        echo "ARROW_PREFIX=${ARROW_PREFIX}" >> $GITHUB_ENV
+
+        # Add pkg-config paths so CMake/meson/autotools can find .pc files
+        if [ -d "${LIBPQ_PREFIX}/lib/pkgconfig" ]; then
+          echo "PKG_CONFIG_PATH=${LIBPQ_PREFIX}/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+        fi
+        if [ -n "${ARROW_PREFIX}" ] && [ -d "${ARROW_PREFIX}/lib/pkgconfig" ]; then
+          echo "PKG_CONFIG_PATH=${ARROW_PREFIX}/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+        fi
+
+        # Provide a CMAKE_PREFIX_PATH containing both prefixes
+        CMAKE_PATHS="${LIBPQ_PREFIX}"
+        if [ -n "${ARROW_PREFIX}" ]; then
+          CMAKE_PATHS="${CMAKE_PATHS};${ARROW_PREFIX}"
+        fi
+        echo "CMAKE_PREFIX_PATH=${CMAKE_PATHS}" >> $GITHUB_ENV
+
     - name: Install Python build tools
       run: |
         python -m pip install --upgrade pip
