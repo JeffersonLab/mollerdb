@@ -1,8 +1,10 @@
 #include "mollerdb/Database.h"
 #include <sqlpp23/postgresql/postgresql.h>
+#include <libpq-fe.h>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 namespace sql = sqlpp::postgresql;
 
@@ -11,53 +13,112 @@ private:
     static std::shared_ptr<sql::connection_config> parse_connection_string(const std::string& conn_string) {
         auto config = std::make_shared<sql::connection_config>();
         
-        // Parse connection string (PostgreSQL libpq format)
-        // Supported format: "key1=value1 key2=value2 ..."
-        // Supported keys: host, dbname, user, password, port
-        // 
-        // NOTE: This parser does not handle quoted values (e.g., password='my pass').
-        // Values containing spaces or special characters will be incorrectly parsed.
-        // This limitation is acceptable for the keys currently parsed (host, dbname, 
-        // user, password, port) as spaces are unlikely to appear in these values.
-        // TODO: Create GitHub issue to implement proper quote handling for full 
-        // PostgreSQL connection string support (see libpq documentation).
+        // Use libpq's PQconninfoParse to properly parse the connection string
+        // This handles all PostgreSQL connection string features including:
+        // - Quoted values (e.g., password='my pass')
+        // - Escaped characters
+        // - All libpq connection parameters
+        char* errmsg = nullptr;
+        PQconninfoOption* opts = PQconninfoParse(conn_string.c_str(), &errmsg);
         
-        auto trim = [](const std::string& str) -> std::string {
-            auto first = str.find_first_not_of(" \t");
-            auto last = str.find_last_not_of(" \t");
-            if (first != std::string::npos && last != std::string::npos) {
-                return str.substr(first, last - first + 1);
-            }
-            return "";
-        };
+        if (opts == nullptr) {
+            std::string error_message = errmsg ? std::string(errmsg) : "unknown error";
+            if (errmsg) PQfreemem(errmsg);
+            throw std::invalid_argument("Invalid connection string: " + error_message);
+        }
         
-        size_t pos = 0;
-        std::string str = conn_string;
-        while (pos < str.length()) {
-            size_t eq_pos = str.find('=', pos);
-            if (eq_pos == std::string::npos) break;
+        // Extract parsed values into sqlpp23's connection_config
+        for (PQconninfoOption* opt = opts; opt->keyword != nullptr; ++opt) {
+            if (opt->val == nullptr) continue;
             
-            size_t space_pos = str.find(' ', eq_pos);
-            if (space_pos == std::string::npos) space_pos = str.length();
+            std::string keyword = opt->keyword;
+            std::string value = opt->val;
             
-            std::string key = trim(str.substr(pos, eq_pos - pos));
-            std::string value = trim(str.substr(eq_pos + 1, space_pos - eq_pos - 1));
-            
-            if (key == "host") config->host = value;
-            else if (key == "dbname") config->dbname = value;
-            else if (key == "user") config->user = value;
-            else if (key == "password") config->password = value;
-            else if (key == "port") {
+            if (keyword == "host") {
+                config->host = value;
+            } else if (keyword == "hostaddr") {
+                config->hostaddr = value;
+            } else if (keyword == "port") {
                 try {
                     config->port = std::stoul(value);
                 } catch (const std::exception& e) {
+                    PQconninfoFree(opts);
                     throw std::invalid_argument("Invalid port value: " + value);
                 }
+            } else if (keyword == "dbname") {
+                config->dbname = value;
+            } else if (keyword == "user") {
+                config->user = value;
+            } else if (keyword == "password") {
+                config->password = value;
+            } else if (keyword == "connect_timeout") {
+                try {
+                    config->connect_timeout = std::stoul(value);
+                } catch (const std::exception&) {
+                    // Ignore invalid timeout values
+                }
+            } else if (keyword == "client_encoding") {
+                config->client_encoding = value;
+            } else if (keyword == "options") {
+                config->options = value;
+            } else if (keyword == "application_name") {
+                config->application_name = value;
+            } else if (keyword == "fallback_application_name") {
+                config->fallback_application_name = value;
+            } else if (keyword == "keepalives") {
+                config->keepalives = (value == "1");
+            } else if (keyword == "keepalives_idle") {
+                try {
+                    config->keepalives_idle = std::stoul(value);
+                } catch (const std::exception&) {
+                    // Ignore invalid values
+                }
+            } else if (keyword == "keepalives_interval") {
+                try {
+                    config->keepalives_interval = std::stoul(value);
+                } catch (const std::exception&) {
+                    // Ignore invalid values
+                }
+            } else if (keyword == "keepalives_count") {
+                try {
+                    config->keepalives_count = std::stoul(value);
+                } catch (const std::exception&) {
+                    // Ignore invalid values
+                }
+            } else if (keyword == "sslmode") {
+                if (value == "disable") {
+                    config->sslmode = sql::connection_config::sslmode_t::disable;
+                } else if (value == "allow") {
+                    config->sslmode = sql::connection_config::sslmode_t::allow;
+                } else if (value == "prefer") {
+                    config->sslmode = sql::connection_config::sslmode_t::prefer;
+                } else if (value == "require") {
+                    config->sslmode = sql::connection_config::sslmode_t::require;
+                } else if (value == "verify-ca") {
+                    config->sslmode = sql::connection_config::sslmode_t::verify_ca;
+                } else if (value == "verify-full") {
+                    config->sslmode = sql::connection_config::sslmode_t::verify_full;
+                }
+            } else if (keyword == "sslcompression") {
+                config->sslcompression = (value == "1");
+            } else if (keyword == "sslcert") {
+                config->sslcert = value;
+            } else if (keyword == "sslkey") {
+                config->sslkey = value;
+            } else if (keyword == "sslrootcert") {
+                config->sslrootcert = value;
+            } else if (keyword == "sslcrl") {
+                config->sslcrl = value;
+            } else if (keyword == "requirepeer") {
+                config->requirepeer = value;
+            } else if (keyword == "krbsrvname") {
+                config->krbsrvname = value;
+            } else if (keyword == "service") {
+                config->service = value;
             }
-            
-            pos = space_pos + 1;
         }
         
+        PQconninfoFree(opts);
         return config;
     }
 
