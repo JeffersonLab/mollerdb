@@ -11,8 +11,9 @@ private:
     static std::shared_ptr<sql::connection_config> parse_connection_string(const std::string& conn_string) {
         auto config = std::make_shared<sql::connection_config>();
         
-        // Parse connection string (basic parsing, could be enhanced)
-        // Format: "host=... dbname=... user=... password=..."
+        // Parse connection string (PostgreSQL libpq format)
+        // Supported format: "key1=value1 key2=value2 ..."
+        // Supported keys: host, dbname, user, password, port
         size_t pos = 0;
         std::string str = conn_string;
         while (pos < str.length()) {
@@ -26,10 +27,21 @@ private:
             std::string value = str.substr(eq_pos + 1, space_pos - eq_pos - 1);
             
             // Trim whitespace
-            key.erase(0, key.find_first_not_of(" \t"));
-            key.erase(key.find_last_not_of(" \t") + 1);
-            value.erase(0, value.find_first_not_of(" \t"));
-            value.erase(value.find_last_not_of(" \t") + 1);
+            auto first = key.find_first_not_of(" \t");
+            auto last = key.find_last_not_of(" \t");
+            if (first != std::string::npos && last != std::string::npos) {
+                key = key.substr(first, last - first + 1);
+            } else {
+                key.clear();
+            }
+            
+            first = value.find_first_not_of(" \t");
+            last = value.find_last_not_of(" \t");
+            if (first != std::string::npos && last != std::string::npos) {
+                value = value.substr(first, last - first + 1);
+            } else {
+                value.clear();
+            }
             
             if (key == "host") config->host = value;
             else if (key == "dbname") config->dbname = value;
