@@ -2,7 +2,7 @@
 
 This document provides comprehensive instructions for AI agents working on the `mollerdb` project. It summarizes the design, decisions, and current state of the project.
 
-**Last Updated:** 2025-11-01 18:38:00 UTC
+**Last Updated:** 2025-11-01 18:54:00 UTC
 **Last User:** wdconinc
 
 ## 1. Project Overview
@@ -48,6 +48,7 @@ mollerdb/
 │   │   └── __init__.py
 │   └── bindings.cpp  # pybind11 bindings
 ├── thirdparty/       # Third-party dependencies (git submodules)
+├── docs/             # Documentation (published to GitHub Pages)
 ├── CMakeLists.txt    # CMake build configuration
 └── pyproject.toml    # Python package configuration
 ```
@@ -115,49 +116,88 @@ The project uses GitHub Actions for continuous integration (see `.github/workflo
 - Git submodules must be checked out in CI workflows
 - Both C++ and Python components should be tested
 
-## 8. Common Tasks
+## 8. Documentation
 
-### 8.1. Adding a New Database Query Function
+### 8.1. Documentation Structure
+The project documentation is located in the `docs/` directory and is published to GitHub Pages using Docsify. The documentation structure includes:
+- **docs/README.md**: Main documentation file with installation and usage instructions
+- **docs/_sidebar.md**: Sidebar navigation configuration
+- **docs/index.html**: Docsify configuration file
+- **docs/.nojekyll**: Disables Jekyll processing for GitHub Pages
+
+### 8.2. Documentation Maintenance Guidelines
+**IMPORTANT**: When developing new features or making changes, agents MUST keep the documentation up to date:
+
+1. **When Adding New Features**:
+   - Update `docs/README.md` with usage examples for the new feature
+   - Add API reference documentation for new classes/methods
+   - Update installation instructions if new dependencies are required
+   - Add to the appropriate section in `docs/_sidebar.md` if creating new documentation pages
+
+2. **When Modifying Existing Features**:
+   - Update all affected examples in `docs/README.md`
+   - Ensure API reference documentation reflects the changes
+   - Update any affected usage instructions
+
+3. **Periodic Documentation Review**:
+   - Before completing major features, review the documentation for accuracy
+   - Verify that all code examples are correct and runnable
+   - Check that installation instructions are current
+   - Ensure API reference documentation matches the actual implementation
+
+4. **Documentation Testing**:
+   - When making significant documentation changes, verify that:
+     - All code examples are syntactically correct
+     - Installation instructions work on supported platforms
+     - Links to external resources are valid
+     - The docsify sidebar navigation works correctly
+
+The documentation is automatically deployed to GitHub Pages via the `.github/workflows/pages.yml` workflow when changes are pushed to the main branch.
+
+## 9. Common Tasks
+
+### 9.1. Adding a New Database Query Function
 1. Implement the C++ function in `src/Database.cpp`
 2. Use sqlpp23 for database interaction
 3. Return results as Arrow `Table` objects
 4. Expose the function in `python/bindings.cpp` using pybind11
 5. Update Python package `__init__.py` if needed
+6. Update documentation in `docs/README.md` with usage examples
 
-### 8.2. Modifying Build Configuration
+### 9.2. Modifying Build Configuration
 - C++ build: Edit `CMakeLists.txt`
 - Python package: Edit `pyproject.toml`
 - Dependencies: Update both files as needed
 
-### 8.3. Working with Arrow Tables
+### 9.3. Working with Arrow Tables
 - Construct Arrow tables in C++ using the Arrow C++ API
 - Pass table pointers through pybind11
 - Python receives Arrow tables that can be converted to Pandas DataFrames
 
-## 9. Important Notes
+## 10. Important Notes
 
 - **Minimal Changes**: Make the smallest possible changes to achieve goals
 - **Testing**: Run existing tests before and after changes
 - **Dependencies**: Avoid adding new dependencies unless absolutely necessary
 - **Platform Independence**: Keep code portable (Linux, macOS, Windows)
 - **Performance**: The C++ core is designed for high performance; maintain this in all changes
-- **Documentation**: Update README.md and docstrings when changing public APIs
+- **Documentation**: Update docs/README.md and docstrings when changing public APIs
 
-## 10. Security Considerations
+## 11. Security Considerations
 
 - Never commit database credentials or connection strings
 - Use environment variables for sensitive configuration
 - Validate all database inputs to prevent SQL injection (sqlpp23 provides protection)
 - Review dependencies for known vulnerabilities
 
-## 11. Next Steps
+## 12. Next Steps
 
 The project is ready for ongoing development:
 1. **Implementing Core Logic**: Flesh out the `src/Database.cpp` file to perform actual database queries using `sqlpp23`.
 2. **Integrating Apache Arrow**: Add the logic to build Arrow `Table` objects from the query results and implement the C++-to-Python type conversions for these tables.
 3. **CI/CD Setup**: Create a GitHub Actions workflow to build and test the C++ and Python components on various platforms, ensuring all dependencies (`arrow`) are correctly handled. The workflow must ensure git submodules are checked out to provide `sqlpp23`.
-4. **Documentation and Examples**: Expand the `README.md` and add an `examples/` directory showing how to use the SDK in both Python and C++.
+4. **Documentation and Examples**: Expand the `docs/README.md` and add an `examples/` directory showing how to use the SDK in both Python and C++.
 
-## 12. Contact
+## 13. Contact
 
 For questions about design decisions or project direction, contact the maintainers at wdconinc@jlab.org.
