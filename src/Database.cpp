@@ -1,18 +1,18 @@
 #include "mollerdb/Database.h"
 #include <sqlpp23/postgresql/postgresql.h>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
 
 namespace sql = sqlpp::postgresql;
 
 class moller::db::Database::Impl {
-public:
-    explicit Impl(const std::string& conn_string) {
-        // Parse connection string and create config
-        // For simplicity, assuming connection string is in format: "host=... dbname=... user=... password=..."
-        config = std::make_shared<sql::connection_config>();
+private:
+    static std::shared_ptr<sql::connection_config> parse_connection_string(const std::string& conn_string) {
+        auto config = std::make_shared<sql::connection_config>();
         
         // Parse connection string (basic parsing, could be enhanced)
-        // This is a simple parser; in production, you might want something more robust
+        // Format: "host=... dbname=... user=... password=..."
         size_t pos = 0;
         std::string str = conn_string;
         while (pos < str.length()) {
@@ -35,12 +35,29 @@ public:
             else if (key == "dbname") config->dbname = value;
             else if (key == "user") config->user = value;
             else if (key == "password") config->password = value;
-            else if (key == "port") config->port = std::stoul(value);
+            else if (key == "port") {
+                try {
+                    config->port = std::stoul(value);
+                } catch (const std::exception& e) {
+                    throw std::invalid_argument("Invalid port value: " + value);
+                }
+            }
             
             pos = space_pos + 1;
         }
         
-        conn = std::make_unique<sql::connection>(config);
+        return config;
+    }
+
+public:
+    explicit Impl(const std::string& conn_string) {
+        config = parse_connection_string(conn_string);
+        
+        try {
+            conn = std::make_unique<sql::connection>(config);
+        } catch (const std::exception& e) {
+            throw std::runtime_error("Failed to connect to database: " + std::string(e.what()));
+        }
     }
     
     std::shared_ptr<sql::connection_config> config;
