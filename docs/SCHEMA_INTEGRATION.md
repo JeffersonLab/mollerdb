@@ -97,9 +97,6 @@ pip install . --verbose
 
 - `schema/qwparity_schema.sql`: Generated PostgreSQL schema
 - `include/mollerdb/schema/qwparity_schema.h`: Generated C++ headers
-- `CMakeLists.txt`: Updated to include sqlpp23
-- `.github/workflows/build.yml`: Updated to checkout submodules
-- `README.md`: Added schema integration overview
 
 ## Known Issues
 
