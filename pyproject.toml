@@ -1,0 +1,26 @@
+[build-system]
+requires = ["scikit-build-core>=0.7.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "mollerdb"
+version = "0.1.0"
+authors = [{ name = "MOLLER Collaboration", email = "wdconinc@jlab.org" }]
+description = "A C++/Python SDK for the MOLLER database"
+readme = "README.md"
+requires-python = ">=3.7"
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+]
+
+[tool.scikit-build]
+# Tell scikit-build where the CMake project is located
+cmake.source-dir = "."
+
+# Specify what to include in the wheel.
+# The python package directory is now 'mollerdb'.
+wheel.packages = ["python/mollerdb"]
