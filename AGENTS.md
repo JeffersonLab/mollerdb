@@ -1,13 +1,13 @@
-# Agent Design and State Summary
+# AI Agent Instructions for mollerdb
 
-This document summarizes the design, decisions, and current state of the `mollerdb` project as of the last interaction. It is intended to provide context for future AI agents or developers to seamlessly continue the work.
+This document provides comprehensive instructions for AI agents working on the `mollerdb` project. It summarizes the design, decisions, and current state of the project.
 
-**Last Updated:** 2025-11-01 15:27:26 UTC
+**Last Updated:** 2025-11-01 18:38:00 UTC
 **Last User:** wdconinc
 
-## 1. Project Goal
+## 1. Project Overview
 
-The primary goal is to create a high-performance, dual-language Software Development Kit (SDK) to provide convenient access to the MOLLER experiment's analysis database. This SDK is a key component of a larger strategy to improve data accessibility for collaborators who may not be proficient in SQL.
+The **mollerdb** project is a high-performance, dual-language Software Development Kit (SDK) for accessing the MOLLER experiment's analysis database. MOLLER (Measurement Of a Lepton Lepton Electroweak Reaction) is a precision physics experiment at Jefferson Lab that will measure parity-violating asymmetry in electron-electron scattering. This SDK provides convenient access to the experiment's database for collaborators who may not be proficient in SQL.
 
 ## 2. Core Design Decisions
 
@@ -36,19 +36,128 @@ The SDK design was informed by a proposed redesign of the underlying database sc
 - **Generalized Sensitivities Table**: Abstracting "slopes" into a generic `sensitivities` table to store any linear correlation (detector-monitor, detector-detector, etc.). This requires a master `quantity` lookup table.
 - **Versioning**: Adding versioning (e.g., `valid_from_run`, `valid_to_run`) to detector and quantity tables to ensure long-term reproducibility.
 
-## 4. Current Status and Next Steps
+## 4. Project Structure
 
-**Status:** **Blocked by Agent Tool Failure.**
+```
+mollerdb/
+├── include/           # C++ header files
+├── src/              # C++ source files
+│   └── Database.cpp  # Core database interaction logic
+├── python/           # Python package
+│   ├── mollerdb/     # Python package directory
+│   │   └── __init__.py
+│   └── bindings.cpp  # pybind11 bindings
+├── thirdparty/       # Third-party dependencies (git submodules)
+├── CMakeLists.txt    # CMake build configuration
+└── pyproject.toml    # Python package configuration
+```
 
-The complete file structure and content for the initial project skeleton have been defined and agreed upon. However, the agent's attempts to commit these files to the `JeffersonLab/mollerdb` repository have repeatedly failed due to a series of tool errors (`mcp_github_push_files`, `githubread`, etc.).
+## 5. Development Guidelines
 
-**The repository on GitHub is presumed to be empty or in an incorrect state.** The agent cannot verify its contents.
+### 5.1. Building the Project
 
-**Immediate Next Step:**
-- **Action for User (`wdconinc`)**: Manually create the following files with their agreed-upon content in the `JeffersonLab/mollerdb` repository. This is necessary to unblock the project. The final agreed-upon file list and contents were provided in the last interaction before this summary was requested.
+**Python Package:**
+```bash
+pip install -e .
+```
 
-**Once the repository is populated, the project can proceed with:**
-1.  **Implementing Core Logic**: Flesh out the `src/Database.cpp` file to perform actual database queries using `sqlpp23`.
-2.  **Integrating Apache Arrow**: Add the logic to build Arrow `Table` objects from the query results and implement the C++-to-Python type conversions for these tables.
-3.  **CI/CD Setup**: Create a GitHub Actions workflow to build and test the C++ and Python components on various platforms, ensuring all dependencies (`arrow`) are correctly handled. The workflow must ensure git submodules are checked out to provide `sqlpp23`.
-4.  **Documentation and Examples**: Expand the `README.md` and add an `examples/` directory showing how to use the SDK in both Python and C++.
+**C++ Library (via CMake):**
+```bash
+mkdir build && cd build
+cmake ..
+make
+```
+
+### 5.2. Git Submodules
+The project uses git submodules for dependencies like sqlpp23. Always ensure submodules are initialized:
+```bash
+git submodule update --init --recursive
+```
+
+### 5.3. Code Style
+- Follow the existing code style in each file
+- C++ code uses C++23 standard (as specified in CMakeLists.txt)
+- Python code should follow PEP 8 guidelines
+- Keep the C++ core focused on database operations
+- Keep Python bindings thin and delegate to C++ core
+
+### 5.4. Data Flow
+1. C++ functions query the database using sqlpp23
+2. Results are converted to Apache Arrow `Table` objects
+3. Arrow tables are passed to Python with zero-copy
+4. Python users can convert Arrow tables to Pandas DataFrames
+
+### 5.5. Naming Conventions
+- **Python Package**: `mollerdb`
+- **Compiled Module**: `mollerdb`
+- **C++ Namespace**: `mollerdb`
+- Use snake_case for Python code
+- Use camelCase for C++ code (following existing conventions)
+
+## 6. Dependencies
+
+### 6.1. C++ Dependencies
+- sqlpp23 (git submodule)
+- Apache Arrow C++ library
+- PostgreSQL client library (libpq)
+- pybind11
+
+### 6.2. Python Dependencies
+- scikit-build-core (build)
+- pybind11 (build)
+- pyarrow (runtime - for Arrow table interaction)
+- pandas (optional - for DataFrame conversion in user code and examples)
+
+## 7. CI/CD
+
+The project uses GitHub Actions for continuous integration (see `.github/workflows/`). When modifying code:
+- Ensure builds pass on supported platforms
+- Git submodules must be checked out in CI workflows
+- Both C++ and Python components should be tested
+
+## 8. Common Tasks
+
+### 8.1. Adding a New Database Query Function
+1. Implement the C++ function in `src/Database.cpp`
+2. Use sqlpp23 for database interaction
+3. Return results as Arrow `Table` objects
+4. Expose the function in `python/bindings.cpp` using pybind11
+5. Update Python package `__init__.py` if needed
+
+### 8.2. Modifying Build Configuration
+- C++ build: Edit `CMakeLists.txt`
+- Python package: Edit `pyproject.toml`
+- Dependencies: Update both files as needed
+
+### 8.3. Working with Arrow Tables
+- Construct Arrow tables in C++ using the Arrow C++ API
+- Pass table pointers through pybind11
+- Python receives Arrow tables that can be converted to Pandas DataFrames
+
+## 9. Important Notes
+
+- **Minimal Changes**: Make the smallest possible changes to achieve goals
+- **Testing**: Run existing tests before and after changes
+- **Dependencies**: Avoid adding new dependencies unless absolutely necessary
+- **Platform Independence**: Keep code portable (Linux, macOS, Windows)
+- **Performance**: The C++ core is designed for high performance; maintain this in all changes
+- **Documentation**: Update README.md and docstrings when changing public APIs
+
+## 10. Security Considerations
+
+- Never commit database credentials or connection strings
+- Use environment variables for sensitive configuration
+- Validate all database inputs to prevent SQL injection (sqlpp23 provides protection)
+- Review dependencies for known vulnerabilities
+
+## 11. Next Steps
+
+The project is ready for ongoing development:
+1. **Implementing Core Logic**: Flesh out the `src/Database.cpp` file to perform actual database queries using `sqlpp23`.
+2. **Integrating Apache Arrow**: Add the logic to build Arrow `Table` objects from the query results and implement the C++-to-Python type conversions for these tables.
+3. **CI/CD Setup**: Create a GitHub Actions workflow to build and test the C++ and Python components on various platforms, ensuring all dependencies (`arrow`) are correctly handled. The workflow must ensure git submodules are checked out to provide `sqlpp23`.
+4. **Documentation and Examples**: Expand the `README.md` and add an `examples/` directory showing how to use the SDK in both Python and C++.
+
+## 12. Contact
+
+For questions about design decisions or project direction, contact the maintainers at wdconinc@jlab.org.
