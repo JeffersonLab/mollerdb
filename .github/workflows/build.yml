@@ -1,0 +1,58 @@
+# .github/workflows/build.yml
+
+name: Build and Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      # Use recursive if pybind11 or other dependencies are git submodules
+      # with:
+      #   submodules: 'recursive'
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install C++ dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends libpq-dev libpqxx-dev libarrow-dev
+
+    - name: Install C++ dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install libpq libpqxx apache-arrow
+
+    - name: Install Python build tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install scikit-build-core pybind11 pytest wheel
+
+    - name: Build and install Python package
+      run: |
+        pip install . --verbose
+
+    - name: Run tests
+      run: |
+        # This is a placeholder. Create a 'tests' directory with pytest files.
+        # For example: pytest tests/
+        echo "Tests would run here."
