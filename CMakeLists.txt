@@ -14,21 +14,20 @@ set(CUSTOM_TYPES_FILE "${CMAKE_CURRENT_SOURCE_DIR}/schema/custom_types.csv")
 find_program(DBML2SQL dbml2sql)
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
-# Generate SQL from DBML
-if(DBML2SQL)
+# Check if sqlpp23-ddl2cpp script exists
+set(SQLPP23_DDL2CPP "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/sqlpp23/scripts/sqlpp23-ddl2cpp")
+
+# Only proceed with schema generation if both tools are available
+if(DBML2SQL AND EXISTS ${SQLPP23_DDL2CPP})
+    # Generate SQL from DBML
     add_custom_command(
         OUTPUT ${SQL_FILE}
         COMMAND ${DBML2SQL} --postgresql -o ${SQL_FILE} ${DBML_FILE}
         DEPENDS ${DBML_FILE}
         COMMENT "Generating PostgreSQL SQL from DBML schema..."
     )
-else()
-    message(FATAL_ERROR "dbml2sql not found. Install with: npm install -g @dbml/cli")
-endif()
 
-# Generate C++ headers from SQL
-set(SQLPP23_DDL2CPP "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/sqlpp23/scripts/sqlpp23-ddl2cpp")
-if(EXISTS ${SQLPP23_DDL2CPP})
+    # Generate C++ headers from SQL
     add_custom_command(
         OUTPUT ${SCHEMA_HEADER}
         COMMAND ${Python3_EXECUTABLE} ${SQLPP23_DDL2CPP}
@@ -39,12 +38,17 @@ if(EXISTS ${SQLPP23_DDL2CPP})
         DEPENDS ${SQL_FILE} ${CUSTOM_TYPES_FILE}
         COMMENT "Generating C++ headers from SQL schema..."
     )
-else()
-    message(WARNING "sqlpp23-ddl2cpp script not found. Schema headers will not be generated.")
-endif()
 
-# Create a custom target for schema generation
-add_custom_target(generate_schema ALL DEPENDS ${SCHEMA_HEADER})
+    # Create a custom target for schema generation
+    add_custom_target(generate_schema ALL DEPENDS ${SCHEMA_HEADER})
+else()
+    if(NOT DBML2SQL)
+        message(FATAL_ERROR "dbml2sql not found. Install with: npm install -g @dbml/cli")
+    endif()
+    if(NOT EXISTS ${SQLPP23_DDL2CPP})
+        message(FATAL_ERROR "sqlpp23-ddl2cpp script not found at ${SQLPP23_DDL2CPP}. Make sure git submodules are initialized: git submodule update --init --recursive")
+    endif()
+endif()
 
 # --- Find Dependencies ---
 # scikit-build-core helps CMake find the correct Python
