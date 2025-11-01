@@ -50,7 +50,7 @@ The build process requires:
 - **Node.js and npm**: For the `@dbml/cli` package (provides `dbml2sql`)
 - **Python 3**: For the `sqlpp23-ddl2cpp` script
 
-Install the required tool:
+Install the required tools:
 ```bash
 npm install -g @dbml/cli
 ```
