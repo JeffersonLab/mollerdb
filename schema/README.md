@@ -14,15 +14,15 @@ The database schema is maintained in the separate [MOLLER-parity-schema](https:/
 
 ## Schema Update Process
 
-The schema comes from the MOLLER-parity-schema repository which is included as a git submodule at `external/MOLLER-parity-schema`. To update the schema:
+The schema comes from the MOLLER-parity-schema repository which is included as a git submodule at `thirdparty/MOLLER-parity-schema`. To update the schema:
 
 ### 1. Update the Schema Submodule
 
 ```bash
-cd external/MOLLER-parity-schema
+cd thirdparty/MOLLER-parity-schema
 git pull origin main
 cd ../..
-git add external/MOLLER-parity-schema
+git add thirdparty/MOLLER-parity-schema
 ```
 
 ### 2. Regenerate Schema Files

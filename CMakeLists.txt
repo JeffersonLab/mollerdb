@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # --- sqlpp23 (header-only library as submodule) ---
-add_subdirectory(external/sqlpp23 EXCLUDE_FROM_ALL)
+add_subdirectory(thirdparty/sqlpp23 EXCLUDE_FROM_ALL)
 
 # --- Find Dependencies ---
 # scikit-build-core helps CMake find the correct Python
@@ -30,7 +30,7 @@ add_library(mollerdb_core SHARED
 )
 target_include_directories(mollerdb_core PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/external/sqlpp23/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/sqlpp23/include"
 )
 target_link_libraries(mollerdb_core PRIVATE
     sqlpp23::sqlpp23

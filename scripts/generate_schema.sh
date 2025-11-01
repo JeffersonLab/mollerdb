@@ -11,10 +11,10 @@ cd "${REPO_ROOT}"
 echo "==> Generating PostgreSQL SQL from DBML..."
 dbml2sql --postgresql \
   -o schema/qwparity_schema.sql \
-  external/MOLLER-parity-schema/qwparity_schema.dbml
+  thirdparty/MOLLER-parity-schema/qwparity_schema.dbml
 
 echo "==> Generating C++ headers from SQL..."
-python3 external/sqlpp23/scripts/sqlpp23-ddl2cpp \
+python3 thirdparty/sqlpp23/scripts/sqlpp23-ddl2cpp \
   --path-to-ddl schema/qwparity_schema.sql \
   --namespace moller::db::schema \
   --path-to-header include/mollerdb/schema/qwparity_schema.h \

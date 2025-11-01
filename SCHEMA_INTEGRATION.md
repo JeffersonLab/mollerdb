@@ -9,7 +9,7 @@ Determine the best way to provide the database schema to the mollerdb repository
 The implemented solution uses a **git submodule approach with generated artifacts**:
 
 ### 1. Schema Source (MOLLER-parity-schema submodule)
-- Added `external/MOLLER-parity-schema` as a git submodule
+- Added `thirdparty/MOLLER-parity-schema` as a git submodule
 - This provides the authoritative DBML schema source
 - Allows version tracking and easy schema updates
 
@@ -19,7 +19,7 @@ The implemented solution uses a **git submodule approach with generated artifact
 - Custom type mappings in `schema/custom_types.csv` handle PostgreSQL ENUMs
 
 ### 3. C++ Header Generation  
-- Added `external/sqlpp23` as a git submodule for type-safe SQL in C++
+- Added `thirdparty/sqlpp23` as a git submodule for type-safe SQL in C++
 - Use `sqlpp23-ddl2cpp` to generate C++ headers from SQL
 - Generated header is `include/mollerdb/schema/qwparity_schema.h`
 - Provides compile-time type safety for database queries
@@ -42,7 +42,7 @@ When the schema changes in MOLLER-parity-schema:
 
 ```bash
 # 1. Update submodule
-cd external/MOLLER-parity-schema
+cd thirdparty/MOLLER-parity-schema
 git pull origin main
 cd ../..
 
@@ -50,7 +50,7 @@ cd ../..
 ./scripts/generate_schema.sh
 
 # 3. Commit changes
-git add external/MOLLER-parity-schema schema/ include/mollerdb/schema/
+git add thirdparty/MOLLER-parity-schema schema/ include/mollerdb/schema/
 git commit -m "Update database schema to version X.Y.Z"
 ```
 
@@ -76,8 +76,8 @@ git commit -m "Update database schema to version X.Y.Z"
 ## Files Added/Modified
 
 - `.gitmodules`: Submodule configurations
-- `external/MOLLER-parity-schema/`: Schema source (submodule)
-- `external/sqlpp23/`: SQL library (submodule)
+- `thirdparty/MOLLER-parity-schema/`: Schema source (submodule)
+- `thirdparty/sqlpp23/`: SQL library (submodule)
 - `schema/qwparity_schema.sql`: Generated PostgreSQL schema
 - `schema/custom_types.csv`: Type mappings for sqlpp23
 - `schema/README.md`: Schema integration documentation
