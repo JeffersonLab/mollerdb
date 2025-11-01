@@ -4,7 +4,7 @@ Integration tests for the mollerdb module.
 Tests end-to-end functionality and integration between C++ and Python.
 """
 
-import pytest
+
 
 
 def test_database_type():
