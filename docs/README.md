@@ -208,6 +208,75 @@ Compile with:
 g++ -std=c++23 -o my_program my_program.cpp -lmollerdb -larrow
 ```
 
+## Testing
+
+The mollerdb project includes comprehensive test suites for both C++ and Python components.
+
+### Running Tests
+
+#### Python Tests
+
+The Python tests use pytest and can be run after installing the package:
+
+```bash
+# Install the package with test dependencies
+pip install -e .[test]
+
+# Run all Python tests
+pytest tests/python/ -v
+
+# Run specific test file
+pytest tests/python/test_database.py -v
+
+# Run with coverage
+pytest tests/python/ --cov=mollerdb
+```
+
+#### C++ Tests
+
+The C++ tests use Google Test and are built with CMake:
+
+```bash
+# Build with tests enabled
+mkdir build && cd build
+cmake .. -DBUILD_MOLLERDB_TESTS=ON
+cmake --build .
+
+# Run all C++ tests
+ctest --output-on-failure
+
+# Run tests with verbose output
+ctest -V
+
+# Run specific test
+./tests/cpp/test_database
+```
+
+### Test Structure
+
+```
+tests/
+├── cpp/
+│   ├── CMakeLists.txt
+│   └── test_database.cpp       # C++ Database class tests
+└── python/
+    ├── __init__.py
+    ├── conftest.py             # pytest fixtures
+    ├── test_basic.py           # Import and initialization tests
+    ├── test_database.py        # Database class tests
+    └── test_integration.py     # Integration tests
+```
+
+### Writing Tests
+
+When contributing new features, please include tests:
+
+- **C++ Tests**: Add test cases to existing files in `tests/cpp/` or create new test files
+- **Python Tests**: Add test functions to files in `tests/python/` following pytest conventions
+- **Integration Tests**: Add end-to-end tests to `tests/python/test_integration.py`
+
+All tests are automatically run in CI on every pull request.
+
 ## API Reference
 
 ### Database Class

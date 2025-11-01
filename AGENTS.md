@@ -77,20 +77,52 @@ cmake ..
 make
 ```
 
-### 5.2. Git Submodules
+**Building with Tests:**
+```bash
+mkdir build && cd build
+cmake .. -DBUILD_MOLLERDB_TESTS=ON
+cmake --build .
+ctest --output-on-failure
+```
+
+### 5.2. Testing
+
+The project includes comprehensive test suites for both C++ and Python.
+
+**Test Frameworks:**
+- **C++ Tests**: Google Test (gtest) v1.15.2, integrated via CMake FetchContent
+- **Python Tests**: pytest, already listed in `pyproject.toml` test dependencies
+
+**Running Tests:**
+```bash
+# Python tests
+pytest tests/python/ -v
+
+# C++ tests
+cd build
+ctest --output-on-failure
+```
+
+**Test Coverage:**
+- C++ tests validate core Database class functionality
+- Python tests verify bindings and module integration
+- Integration tests ensure C++/Python data interchange works correctly
+- All tests run automatically in CI on every PR
+
+### 5.3. Git Submodules
 The project uses git submodules for dependencies like sqlpp23. Always ensure submodules are initialized:
 ```bash
 git submodule update --init --recursive
 ```
 
-### 5.3. Code Style
+### 5.4. Code Style
 - Follow the existing code style in each file
 - C++ code uses C++23 standard (as specified in CMakeLists.txt)
 - Python code should follow PEP 8 guidelines
 - Keep the C++ core focused on database operations
 - Keep Python bindings thin and delegate to C++ core
 
-### 5.4. Data Flow
+### 5.5. Data Flow
 1. C++ functions query the database using sqlpp23
 2. Results are converted to Apache Arrow `Table` objects
 3. Arrow tables are passed to Python with zero-copy
@@ -110,10 +142,12 @@ git submodule update --init --recursive
 - Apache Arrow C++ library
 - PostgreSQL client library (libpq)
 - pybind11
+- Google Test (for testing, fetched automatically via CMake)
 
 ### 6.2. Python Dependencies
 - scikit-build-core (build)
 - pybind11 (build)
+- pytest (testing)
 - pyarrow (runtime - for Arrow table interaction)
 - pandas (optional - for DataFrame conversion in user code and examples)
 
@@ -168,9 +202,11 @@ The documentation is automatically deployed to GitHub Pages via the `.github/wor
 1. Implement the C++ function in `src/Database.cpp`
 2. Use sqlpp23 for database interaction
 3. Return results as Arrow `Table` objects
-4. Expose the function in `python/bindings.cpp` using pybind11
-5. Update Python package `__init__.py` if needed
-6. Update documentation in `docs/README.md` with usage examples
+4. Add C++ tests in `tests/cpp/test_database.cpp`
+5. Expose the function in `python/bindings.cpp` using pybind11
+6. Add Python tests in `tests/python/test_database.py`
+7. Update Python package `__init__.py` if needed
+8. Update documentation in `docs/README.md` with usage examples
 
 ### 9.2. Modifying Build Configuration
 - C++ build: Edit `CMakeLists.txt`
@@ -182,10 +218,43 @@ The documentation is automatically deployed to GitHub Pages via the `.github/wor
 - Pass table pointers through pybind11
 - Python receives Arrow tables that can be converted to Pandas DataFrames
 
+### 9.4. Running Tests
+
+The project includes comprehensive test suites for both C++ and Python components.
+
+**Python Tests (pytest):**
+```bash
+pytest tests/python/ -v
+```
+
+**C++ Tests (Google Test via CTest):**
+```bash
+mkdir build && cd build
+cmake .. -DBUILD_MOLLERDB_TESTS=ON
+cmake --build .
+ctest --output-on-failure
+```
+
+**Test Structure:**
+- `tests/cpp/` - C++ tests using Google Test
+  - `test_database.cpp` - Database class tests
+- `tests/python/` - Python tests using pytest
+  - `test_basic.py` - Import and initialization tests
+  - `test_database.py` - Database class tests
+  - `test_integration.py` - Integration tests
+  - `conftest.py` - pytest fixtures and configuration
+
+**Writing Tests:**
+When adding new features or fixing bugs:
+1. Add C++ tests for core functionality in `tests/cpp/`
+2. Add Python tests for bindings and integration in `tests/python/`
+3. Ensure tests pass locally before submitting PR
+4. CI will automatically run all tests on pull requests
+
 ## 10. Important Notes
 
 - **Minimal Changes**: Make the smallest possible changes to achieve goals
-- **Testing**: Run existing tests before and after changes
+- **Testing**: Run existing tests before and after changes. Add tests for new functionality
 - **Dependencies**: Avoid adding new dependencies unless absolutely necessary
 - **Platform Independence**: Keep code portable (Linux, macOS, Windows)
 - **Performance**: The C++ core is designed for high performance; maintain this in all changes
