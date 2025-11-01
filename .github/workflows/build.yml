@@ -88,7 +88,14 @@ jobs:
         if [ -n "${ARROW_PREFIX}" ]; then
           CMAKE_PATHS="${CMAKE_PATHS};${ARROW_PREFIX}"
         fi
-        echo "CMAKE_PREFIX_PATH=${CMAKE_PATHS}" >> $GITHUB_ENV
+            echo "CMAKE_PREFIX_PATH=${CMAKE_PATHS}" >> $GITHUB_ENV
+
+    - name: Set environment for libpq (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        echo "LDFLAGS=-L$(brew --prefix libpq)/lib" >> $GITHUB_ENV
+        echo "CPPFLAGS=-I$(brew --prefix libpq)/include" >> $GITHUB_ENV
+        echo "PATH=$(brew --prefix libpq)/bin:$PATH" >> $GITHUB_ENV
 
     - name: Install Python build tools
       run: |
