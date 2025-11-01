@@ -2,8 +2,8 @@
 
 This document summarizes the design, decisions, and current state of the `mollerdb` project as of the last interaction. It is intended to provide context for future AI agents or developers to seamlessly continue the work.
 
-**Last Updated:** 2025-11-01 15:27:26 UTC
-**Last User:** wdconinc
+**Last Updated:** 2025-11-01 18:08:26 UTC
+**Last User:** Copilot Agent (via wdconinc)
 
 ## 1. Project Goal
 
@@ -36,19 +36,48 @@ The SDK design was informed by a proposed redesign of the underlying database sc
 - **Generalized Sensitivities Table**: Abstracting "slopes" into a generic `sensitivities` table to store any linear correlation (detector-monitor, detector-detector, etc.). This requires a master `quantity` lookup table.
 - **Versioning**: Adding versioning (e.g., `valid_from_run`, `valid_to_run`) to detector and quantity tables to ensure long-term reproducibility.
 
-## 4. Current Status and Next Steps
+## 4. Documentation
 
-**Status:** **Blocked by Agent Tool Failure.**
+### 4.1. Documentation Structure
+The project documentation is located in the `docs/` directory and is published to GitHub Pages using Docsify. The documentation structure includes:
+- **docs/README.md**: Main documentation file with installation and usage instructions
+- **docs/_sidebar.md**: Sidebar navigation configuration
+- **docs/index.html**: Docsify configuration file
+- **docs/.nojekyll**: Disables Jekyll processing for GitHub Pages
 
-The complete file structure and content for the initial project skeleton have been defined and agreed upon. However, the agent's attempts to commit these files to the `JeffersonLab/mollerdb` repository have repeatedly failed due to a series of tool errors (`mcp_github_push_files`, `githubread`, etc.).
+### 4.2. Documentation Maintenance Guidelines
+**IMPORTANT**: When developing new features or making changes, agents MUST keep the documentation up to date:
 
-**The repository on GitHub is presumed to be empty or in an incorrect state.** The agent cannot verify its contents.
+1. **When Adding New Features**:
+   - Update `docs/README.md` with usage examples for the new feature
+   - Add API reference documentation for new classes/methods
+   - Update installation instructions if new dependencies are required
+   - Add to the appropriate section in `docs/_sidebar.md` if creating new documentation pages
 
-**Immediate Next Step:**
-- **Action for User (`wdconinc`)**: Manually create the following files with their agreed-upon content in the `JeffersonLab/mollerdb` repository. This is necessary to unblock the project. The final agreed-upon file list and contents were provided in the last interaction before this summary was requested.
+2. **When Modifying Existing Features**:
+   - Update all affected examples in `docs/README.md`
+   - Ensure API reference documentation reflects the changes
+   - Update any affected usage instructions
+
+3. **Periodic Documentation Review**:
+   - Before completing major features, review the documentation for accuracy
+   - Verify that all code examples are correct and runnable
+   - Check that installation instructions are current
+   - Ensure API reference documentation matches the actual implementation
+
+4. **Documentation Testing**:
+   - When making significant documentation changes, verify that:
+     - All code examples are syntactically correct
+     - Installation instructions work on supported platforms
+     - Links to external resources are valid
+     - The docsify sidebar navigation works correctly
+
+The documentation is automatically deployed to GitHub Pages via the `.github/workflows/pages.yml` workflow when changes are pushed to the main branch.
+
+## 5. Current Status and Next Steps
 
 **Once the repository is populated, the project can proceed with:**
 1.  **Implementing Core Logic**: Flesh out the `src/Database.cpp` file to perform actual database queries using `sqlpp23`.
 2.  **Integrating Apache Arrow**: Add the logic to build Arrow `Table` objects from the query results and implement the C++-to-Python type conversions for these tables.
 3.  **CI/CD Setup**: Create a GitHub Actions workflow to build and test the C++ and Python components on various platforms, ensuring all dependencies (`arrow`) are correctly handled. The workflow must ensure git submodules are checked out to provide `sqlpp23`.
-4.  **Documentation and Examples**: Expand the `README.md` and add an `examples/` directory showing how to use the SDK in both Python and C++.
+4.  **Documentation and Examples**: Expand the `docs/README.md` and add an `examples/` directory showing how to use the SDK in both Python and C++.
