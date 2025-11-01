@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <arrow/api.h>
 #include "mollerdb/Database.h"
 namespace py = pybind11;
 PYBIND11_MODULE(mollerdb, m) {
