@@ -29,4 +29,4 @@ To create a new release and publish to PyPI:
 3. Create and push a version tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
 4. The GitHub Actions workflow will automatically build and publish the package to PyPI
 
-**Note:** PyPI publishing uses [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) for secure authentication. Repository maintainers need to configure the PyPI project to trust the GitHub Actions workflow before the first release.
+**Note:** PyPI publishing uses [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) for secure authentication. Repository maintainers need to configure the PyPI project to trust the GitHub Actions workflow before the first release. See [docs/PYPI_SETUP.md](docs/PYPI_SETUP.md) for detailed setup instructions.
