@@ -50,8 +50,16 @@ make
 
 **Important Notes:**
 - The Docker image requires network access during build to download Apache Arrow packages from `packages.apache.org`.
-- In restricted network environments, the Arrow installation may be skipped with a warning. You will need to install Arrow manually or restore network access before building mollerdb.
+- In restricted network environments, the Arrow installation may be skipped with a warning. To manually install Arrow later:
+  ```bash
+  # Inside the container
+  wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+  sudo dpkg -i apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+  sudo apt-get update
+  sudo apt-get install libarrow-dev liblz4-dev libre2-dev
+  ```
 - When using `pip install` inside the container, add the `--break-system-packages` flag as shown above (this is safe in container environments).
+- **Security Note**: The Dockerfile includes SSL verification workarounds for environments with certificate issues. For production deployments, ensure proper SSL/TLS configuration and remove these workarounds.
 
 **What's included in the Docker image:**
 - Ubuntu 24.04 base system

@@ -1,6 +1,12 @@
 # Development Dockerfile for mollerdb
 # This container provides all dependencies needed for C++ and Python development,
 # including tools to build and test both native and Python wheels.
+#
+# SECURITY NOTE: This Dockerfile includes SSL verification workarounds (--no-check-certificate,
+# --strict-ssl=false, --trusted-host) to handle certificate issues in certain build environments.
+# These workarounds are necessary for builds in environments with self-signed certificates but
+# should be removed for production deployments with proper SSL/TLS configuration.
+# Only use this Dockerfile in trusted network environments.
 
 FROM ubuntu:24.04
 
@@ -43,15 +49,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dbml-cli for database schema generation
-# Use --strict-ssl=false in environments with certificate issues
+# SECURITY NOTE: SSL verification is temporarily disabled to handle certificate issues
+# in build environments. For production, ensure proper certificate configuration.
+# This workaround is safe when using trusted network infrastructure.
 RUN npm config set strict-ssl false && \
     npm install -g @dbml/cli && \
     npm config set strict-ssl true
 
 # Add Apache Arrow APT repository
 # Arrow is used for efficient zero-copy data transfer between C++ and Python
-# Note: In restricted network environments, this step may fail.
-# For production use, ensure network access or pre-download the Arrow repository package.
+# Note: In restricted network environments or CI systems with self-signed certificates,
+# this step may fail. For production use with proper network access, remove --no-check-certificate.
+# SECURITY: --no-check-certificate is used here to handle certificate issues in build environments.
+# In production, ensure proper SSL/TLS configuration and remove this flag.
 RUN wget --no-check-certificate https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb || \
     (echo "WARNING: Failed to download Arrow APT source. Arrow packages may not be available." && touch /tmp/arrow-download-failed)
 
@@ -85,7 +95,9 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 # Install Python build tools and testing dependencies
 # These are required for building the Python package and running tests
 # Using --break-system-packages is safe in Docker containers
-# Using --trusted-host for environments with certificate issues
+# SECURITY NOTE: --trusted-host flags bypass SSL verification to handle certificate issues
+# in build environments. For production, ensure proper SSL/TLS configuration and remove these flags.
+# Only use these workarounds in environments with trusted network infrastructure.
 RUN pip3 install --no-cache-dir --break-system-packages \
     --trusted-host pypi.org --trusted-host files.pythonhosted.org \
     scikit-build-core>=0.7.0 \
