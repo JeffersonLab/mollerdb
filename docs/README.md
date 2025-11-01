@@ -15,8 +15,20 @@ This SDK is designed to provide high-performance, dual-language access to the MO
 
 ### Docker Development Environment (Recommended for Quick Start)
 
-The easiest way to get started with development is using the provided Docker environment:
+The easiest way to get started with development is using the provided Docker environment. Pre-built images are available from the GitHub Container Registry and are automatically updated on each release.
 
+**Using pre-built image:**
+```bash
+# Clone the repository
+git clone --recursive https://github.com/JeffersonLab/mollerdb.git
+cd mollerdb
+
+# Pull and use the latest pre-built image
+docker pull ghcr.io/jeffersonlab/mollerdb:latest
+docker run -it --rm -v $(pwd):/workspace ghcr.io/jeffersonlab/mollerdb:latest
+```
+
+**Building locally:**
 ```bash
 # Clone the repository
 git clone --recursive https://github.com/JeffersonLab/mollerdb.git
@@ -49,6 +61,7 @@ make
 ```
 
 **Important Notes:**
+- Pre-built Docker images are automatically published to `ghcr.io/jeffersonlab/mollerdb` on pushes to main and on releases.
 - The Docker image requires network access during build to download Apache Arrow packages from `packages.apache.org`.
 - In restricted network environments, the Arrow installation may be skipped with a warning. To manually install Arrow later:
   ```bash

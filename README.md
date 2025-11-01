@@ -31,9 +31,18 @@ pip install -e .
 
 ### Docker Development Environment
 
-A complete Docker development environment is provided with all dependencies pre-installed. This is the easiest way to get started:
+A complete Docker development environment is provided with all dependencies pre-installed. This is the easiest way to get started.
 
-**Build the Docker image:**
+**Using pre-built image from GitHub Container Registry:**
+```bash
+# Pull the latest image
+docker pull ghcr.io/jeffersonlab/mollerdb:latest
+
+# Start a development shell
+docker run -it --rm -v $(pwd):/workspace ghcr.io/jeffersonlab/mollerdb:latest
+```
+
+**Building locally:**
 ```bash
 docker build -t mollerdb-dev .
 ```
@@ -73,7 +82,7 @@ The Docker image includes:
 - Python 3.12 with pip
 - All Python build dependencies (scikit-build-core, pybind11, pyparsing, pytest, wheel, build)
 
-For more details, see the comments in the `Dockerfile`.
+For more details, see the comments in the `Dockerfile`. The Docker image is automatically built and published to the GitHub Container Registry on pushes to main and on releases.
 
 ## Releasing
 
