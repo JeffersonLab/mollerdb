@@ -93,7 +93,10 @@ jobs:
     - name: Install Python build tools
       run: |
         python -m pip install --upgrade pip
-        pip install scikit-build-core pybind11 pytest wheel
+        # Install build dependencies explicitly for development workflow
+        pip install scikit-build-core pybind11
+        # Install testing tools
+        pip install pytest wheel
 
     - name: Build and install Python package
       run: |
