@@ -23,6 +23,13 @@ jobs:
         os: [ubuntu-latest] # TODO re-enable: , macos-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13']
 
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: test
+      PGUSER: test
+      PGPASSWORD: test
+
     services:
       postgres:
         image: postgres:16
@@ -138,11 +145,6 @@ jobs:
       env:
         CC: ${{ runner.os == 'Linux' && 'gcc-14' || 'gcc' }}
         CXX: ${{ runner.os == 'Linux' && 'g++-14' || 'g++' }}
-        PGHOST: localhost
-        PGPORT: 5432
-        PGDATABASE: test
-        PGUSER: test
-        PGPASSWORD: test
     - name: Build and install Python package
       run: |
         pip install . --verbose
@@ -153,9 +155,3 @@ jobs:
     - name: Run Python tests
       run: |
         pytest tests/python/ -v
-      env:
-        PGHOST: localhost
-        PGPORT: 5432
-        PGDATABASE: test
-        PGUSER: test
-        PGPASSWORD: test
