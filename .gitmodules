@@ -1,3 +1,6 @@
 [submodule "thirdparty/sqlpp23"]
 	path = thirdparty/sqlpp23
 	url = https://github.com/rbock/sqlpp23.git
+[submodule "external/MOLLER-parity-schema"]
+	path = external/MOLLER-parity-schema
+	url = https://github.com/JeffersonLab/MOLLER-parity-schema.git
