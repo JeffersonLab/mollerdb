@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2025-11-01T15:46:22.265Z
+-- Generated at: 2025-11-01T15:52:26.237Z
 
 CREATE TYPE "runlet_full_run_enum" AS ENUM (
   'false',
