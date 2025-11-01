@@ -13,7 +13,77 @@ This SDK is designed to provide high-performance, dual-language access to the MO
 
 ## Installation
 
-### Prerequisites
+### Docker Development Environment (Recommended for Quick Start)
+
+The easiest way to get started with development is using the provided Docker environment:
+
+```bash
+# Clone the repository
+git clone --recursive https://github.com/JeffersonLab/mollerdb.git
+cd mollerdb
+
+# Build the Docker development image
+docker build -t mollerdb-dev .
+
+# Start an interactive development shell
+docker run -it --rm -v $(pwd):/workspace mollerdb-dev
+```
+
+Inside the container, all dependencies are pre-installed:
+
+```bash
+# Initialize git submodules (if not already done)
+git submodule update --init --recursive
+
+# Build and install the package in editable mode
+# Note: Use --break-system-packages in the container environment
+pip install -e . --verbose --break-system-packages
+
+# Run tests (when available)
+pytest tests/
+
+# Or work with C++ directly
+mkdir build && cd build
+cmake ..
+make
+```
+
+**Important Notes:**
+- The Docker image requires network access during build to download Apache Arrow packages from `packages.apache.org`.
+- In restricted network environments, the Arrow installation may be skipped with a warning. You will need to install Arrow manually or restore network access before building mollerdb.
+- When using `pip install` inside the container, add the `--break-system-packages` flag as shown above (this is safe in container environments).
+
+**What's included in the Docker image:**
+- Ubuntu 24.04 base system
+- GCC 14 with full C++23 support (required for sqlpp23)
+- CMake 3.28+
+- Node.js 18 and dbml-cli for database schema generation
+- PostgreSQL client libraries (libpq-dev)
+- Python 3.12 with pip
+- Python build tools: scikit-build-core, pybind11, pyparsing
+- Testing tools: pytest, wheel, build
+- A non-root `developer` user (UID 1001)
+
+**Common Docker workflows:**
+
+Run a one-off build:
+```bash
+docker run -it --rm -v $(pwd):/workspace mollerdb-dev bash -c "
+  git submodule update --init --recursive &&
+  pip install -e . --verbose --break-system-packages
+"
+```
+
+Run tests:
+```bash
+docker run -it --rm -v $(pwd):/workspace mollerdb-dev bash -c "
+  git submodule update --init --recursive &&
+  pip install -e . --verbose --break-system-packages &&
+  pytest tests/
+"
+```
+
+### Prerequisites (Native Installation)
 
 #### Linux (Ubuntu/Debian)
 
