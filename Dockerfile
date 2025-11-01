@@ -122,19 +122,22 @@ CMD ["/bin/bash"]
 # Build the Docker image:
 #   docker build -t mollerdb-dev .
 #
+# Note: The build requires network access to download Apache Arrow packages.
+# In restricted environments, Arrow installation may be skipped with a warning.
+#
 # Start a development shell:
 #   docker run -it --rm -v $(pwd):/workspace mollerdb-dev
 #
 # Build the project inside the container:
 #   docker run -it --rm -v $(pwd):/workspace mollerdb-dev bash -c "
 #     git submodule update --init --recursive &&
-#     pip install -e . --verbose
+#     pip install -e . --verbose --break-system-packages
 #   "
 #
 # Run tests inside the container:
 #   docker run -it --rm -v $(pwd):/workspace mollerdb-dev bash -c "
 #     git submodule update --init --recursive &&
-#     pip install -e . --verbose &&
+#     pip install -e . --verbose --break-system-packages &&
 #     pytest tests/
 #   "
 #
@@ -142,6 +145,6 @@ CMD ["/bin/bash"]
 #   docker run -it --rm -v $(pwd):/workspace mollerdb-dev
 #   # Inside container:
 #   git submodule update --init --recursive
-#   pip install -e . --verbose
+#   pip install -e . --verbose --break-system-packages
 #   # Make code changes on host, rebuild as needed
-#   pip install -e . --verbose
+#   pip install -e . --verbose --break-system-packages
