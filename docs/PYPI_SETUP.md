@@ -60,8 +60,8 @@ Once configured, releases are automatic:
 4. Push: `git push origin vX.Y.Z`
 
 The workflow will automatically:
-- Build wheels for Linux, macOS, and Windows
-- Build for Python 3.10-3.13
+- Build wheels for Linux and macOS
+- Build for Python 3.9-3.13
 - Publish to PyPI using trusted publishing
 
 ## Testing

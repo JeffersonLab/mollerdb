@@ -39,7 +39,14 @@ jobs:
       run: |
         set -euo pipefail
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends lsb-release wget apt-transport-https ca-certificates gnupg
+        sudo apt-get install -y --no-install-recommends lsb-release wget apt-transport-https ca-certificates gnupg software-properties-common
+
+        # Add Ubuntu toolchain PPA for GCC 14 (required for C++23 support)
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
+
+        # Install GCC 14 for C++23 support (sqlpp23 requires "deducing this" feature)
+        sudo apt-get install -y --no-install-recommends gcc-14 g++-14
 
         # Register Apache Arrow APT repository
         wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
@@ -47,12 +54,18 @@ jobs:
         rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
 
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends libpq-dev libpqxx-dev libarrow-dev
+        sudo apt-get install -y --no-install-recommends libpq-dev libarrow-dev
+
+        # Set GCC 14 as the default compiler
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
+        sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-14 100
+        sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-14 100
 
     - name: Install C++ dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install libpq libpqxx apache-arrow
+        brew install libpq apache-arrow
         # Set environment variables for Homebrew-installed libraries
         export LIBPQ_PREFIX="$(brew --prefix libpq)"
         export ARROW_PREFIX="$(brew --prefix apache-arrow)"
@@ -75,11 +88,17 @@ jobs:
     - name: Build wheel
       run: |
         python -m build --wheel
+      env:
+        CC: ${{ runner.os == 'Linux' && 'gcc-14' || 'gcc' }}
+        CXX: ${{ runner.os == 'Linux' && 'g++-14' || 'g++' }}
 
     - name: Build source distribution (Linux only, once is enough)
       if: runner.os == 'Linux' && matrix.python-version == '3.13'
       run: |
         python -m build --sdist
+      env:
+        CC: gcc-14
+        CXX: g++-14
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
