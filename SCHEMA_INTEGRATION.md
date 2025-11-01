@@ -87,6 +87,17 @@ git commit -m "Update database schema to version X.Y.Z"
 - `.github/workflows/build.yml`: Updated to checkout submodules
 - `README.md`: Added schema integration overview
 
+## Known Issues
+
+The DBML schema in MOLLER-parity-schema currently uses some non-standard SQL types that may need to be addressed:
+
+1. **DATETIME**: Used in `run`, `runlet`, and `analysis` tables. PostgreSQL uses `TIMESTAMP` or `TIMESTAMPTZ` instead.
+2. **TINYINT**: Used in `error_code` table. PostgreSQL uses `SMALLINT` as the equivalent.
+
+These issues exist in the upstream DBML and should be fixed in the MOLLER-parity-schema repository. The dbml-cli tool directly converts these types, and they may cause errors when creating the actual database schema.
+
+**Recommendation**: Open an issue in MOLLER-parity-schema to update the DBML file to use PostgreSQL-compatible types.
+
 ## Next Steps
 
 The schema integration is complete. Future work includes:

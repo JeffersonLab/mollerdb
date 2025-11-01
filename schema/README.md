@@ -69,6 +69,20 @@ This mollerdb repository consumes the PostgreSQL version of the schema.
 
 PostgreSQL ENUM types are mapped to `sqlpp::text` in C++ for simplicity. The mappings are defined in `custom_types.csv`.
 
+### Format of custom_types.csv
+
+The file follows the sqlpp23-ddl2cpp custom types format:
+- Each line: `base_type,custom_type1,custom_type2,...`
+- Base type is a sqlpp23 data type (text, integral, floating_point, etc.)
+- Custom types are comma-separated PostgreSQL types to map to that base type
+
+Example:
+```
+text,runlet_full_run_enum,analysis_beam_mode_enum
+```
+
+This maps PostgreSQL ENUMs to C++ `std::optional<::sqlpp::text>` for maximum compatibility.
+
 ## sqlpp23 Integration
 
 The generated C++ header (`qwparity_schema.h`) provides type-safe table and column representations for use with sqlpp23, a C++ SQL library. This allows for compile-time SQL query validation and type safety.
