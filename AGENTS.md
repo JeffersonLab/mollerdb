@@ -38,6 +38,14 @@ The SDK design was informed by a proposed redesign of the underlying database sc
 
 ## 4. Project Structure
 
+**Status:** Schema integration is complete. The database schema from MOLLER-parity-schema is integrated as a git submodule and C++ headers are generated during the build process.
+
+**Documentation Structure:**
+- Place topical documentation files in the `docs/` directory
+- Keep high-level project overview in `README.md`
+- Keep agent-specific guidance in `AGENTS.md`
+- See `docs/SCHEMA_INTEGRATION.md` for detailed information on the schema integration approach
+
 ```
 mollerdb/
 ├── include/           # C++ header files

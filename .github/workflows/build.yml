@@ -34,6 +34,14 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '24'
+
+    - name: Install dbml-cli
+      run: npm install -g @dbml/cli
+
     - name: Install C++ dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -54,7 +62,7 @@ jobs:
         rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
 
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends libpq-dev libarrow-dev
+        sudo apt-get install -y --no-install-recommends libpq-dev libarrow-dev liblz4-dev libre2-dev
 
         # Set GCC 14 as the default compiler
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
@@ -65,7 +73,7 @@ jobs:
     - name: Install C++ dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install libpq apache-arrow
+        brew install libpq apache-arrow lz4 re2
 
         # Save prefixes
         LIBPQ_PREFIX="$(brew --prefix libpq)"
@@ -101,7 +109,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         # Install build dependencies explicitly for development workflow
-        pip install scikit-build-core pybind11
+        pip install scikit-build-core pybind11 pyparsing
         # Install testing tools
         pip install pytest wheel
 

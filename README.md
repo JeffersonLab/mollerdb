@@ -10,6 +10,12 @@ The package is available on PyPI and can be installed using pip:
 pip install mollerdb
 ```
 
+## Database Schema
+
+The database schema is maintained in the separate [MOLLER-parity-schema](https://github.com/JeffersonLab/MOLLER-parity-schema) repository as a DBML file. This repository includes it as a git submodule and generates C++ headers for type-safe database access using sqlpp23.
+
+For details on the schema integration, see [schema/README.md](schema/README.md).
+
 ## Development
 
 For local development, clone the repository and install in editable mode:
@@ -17,6 +23,7 @@ For local development, clone the repository and install in editable mode:
 ```bash
 git clone https://github.com/JeffersonLab/mollerdb.git
 cd mollerdb
+git submodule update --init --recursive
 pip install -e .
 ```
 

@@ -4,7 +4,12 @@
 #include <memory>
 #include <stdexcept>
 
+#include "mollerdb/schema/qwparity_schema.h"
+
 namespace sql = sqlpp::postgresql;
+
+// Note: Full sqlpp23 PostgreSQL integration will be implemented in future commits.
+// This currently provides a placeholder implementation with schema headers available.
 
 class moller::db::Database::Impl {
 private:
@@ -79,5 +84,6 @@ public:
 moller::db::Database::Database(const std::string& conn_string) : pimpl(std::make_unique<Impl>(conn_string)) {}
 moller::db::Database::~Database() = default;
 std::shared_ptr<arrow::Table> moller::db::Database::get_main_detector_results_arrow(int, int, const std::string&) {
+    // TODO: Implement actual query using sqlpp23 and convert results to Arrow Table
     return nullptr;
 }
