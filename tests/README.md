@@ -126,7 +126,7 @@ def test_your_new_feature():
 
 ## Notes
 
-- Tests expect database connection attempts to fail (no database available in test environment)
+- By default, tests expect database connection attempts to fail locally (unless you provide a PostgreSQL instance), but in CI a PostgreSQL service is available and database connections are expected to succeed.
 - Tests validate parsing, error handling, and API structure
 - Mock database connections can be added via pytest fixtures in `conftest.py`
 - Integration tests with actual database connections should be added to `test_integration.py`
