@@ -40,4 +40,4 @@ def test_database_constructor_with_invalid_port():
     
     # Should raise an exception for invalid port
     with pytest.raises(Exception):  # Could be ValueError or RuntimeError
-        db = mollerdb.Database("host=localhost dbname=test user=test password=test port=invalid")
+        mollerdb.Database("host=localhost dbname=test user=test password=test port=invalid")
