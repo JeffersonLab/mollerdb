@@ -4,7 +4,6 @@ Basic tests for the mollerdb Python module.
 Tests module import, initialization, and basic functionality.
 """
 
-import pytest
 
 
 def test_import_mollerdb():
