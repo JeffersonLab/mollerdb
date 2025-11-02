@@ -65,6 +65,7 @@ RUN wget --no-check-certificate https://packages.apache.org/artifactory/arrow/$(
     if [ ! -s apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb ]; then \
         echo "WARNING: Downloaded Arrow APT source is missing or empty. Skipping Arrow installation."; \
         touch /tmp/arrow-download-failed; \
+    fi
 RUN CODENAME=$(lsb_release --codename --short) && \
     wget --no-check-certificate https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-${CODENAME}.deb || \
     (echo "WARNING: Failed to download Arrow APT source. Arrow packages may not be available." && touch /tmp/arrow-download-failed)
