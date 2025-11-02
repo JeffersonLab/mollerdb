@@ -23,6 +23,28 @@ jobs:
         os: [ubuntu-latest] # TODO re-enable: , macos-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13']
 
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: test
+      PGUSER: test
+      PGPASSWORD: test
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
@@ -62,7 +84,7 @@ jobs:
         rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
 
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends libpq-dev libarrow-dev liblz4-dev libre2-dev
+        sudo apt-get install -y --no-install-recommends libpq-dev libarrow-dev liblz4-dev libre2-dev pybind11-dev
 
         # Set GCC 14 as the default compiler
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
@@ -113,6 +135,16 @@ jobs:
         # Install testing tools
         pip install pytest wheel
 
+    - name: Build and run C++ tests
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DBUILD_TESTING=ON
+        cmake --build . --target test_database
+        ctest --output-on-failure -V
+      env:
+        CC: ${{ runner.os == 'Linux' && 'gcc-14' || 'gcc' }}
+        CXX: ${{ runner.os == 'Linux' && 'g++-14' || 'g++' }}
     - name: Build and install Python package
       run: |
         pip install . --verbose
@@ -120,8 +152,6 @@ jobs:
         CC: ${{ runner.os == 'Linux' && 'gcc-14' || 'gcc' }}
         CXX: ${{ runner.os == 'Linux' && 'g++-14' || 'g++' }}
 
-    - name: Run tests
+    - name: Run Python tests
       run: |
-        # This is a placeholder. Create a 'tests' directory with pytest files.
-        # For example: pytest tests/
-        echo "Tests would run here."
+        pytest tests/python/ -v
