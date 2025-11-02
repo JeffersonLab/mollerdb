@@ -65,8 +65,3 @@ TEST_F(DatabaseTest, InvalidPortThrowsException) {
     }, std::invalid_argument);
 }
 
-// Main function for the test runner
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
