@@ -84,7 +84,7 @@ jobs:
         rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
 
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends libpq-dev libarrow-dev liblz4-dev libre2-dev
+        sudo apt-get install -y --no-install-recommends libpq-dev libarrow-dev liblz4-dev libre2-dev pybind11-dev
 
         # Set GCC 14 as the default compiler
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
