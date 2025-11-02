@@ -13,7 +13,98 @@ This SDK is designed to provide high-performance, dual-language access to the MO
 
 ## Installation
 
-### Prerequisites
+### Docker Development Environment (Recommended for Quick Start)
+
+The easiest way to get started with development is using the provided Docker environment. Pre-built images are available from the GitHub Container Registry and are automatically updated on each release.
+
+**Using pre-built image:**
+```bash
+# Clone the repository
+git clone --recursive https://github.com/JeffersonLab/mollerdb.git
+cd mollerdb
+
+# Pull and use the latest pre-built image
+docker pull ghcr.io/jeffersonlab/mollerdb:latest
+docker run -it --rm -v $(pwd):/workspace ghcr.io/jeffersonlab/mollerdb:latest
+```
+
+**Building locally:**
+```bash
+# Clone the repository
+git clone --recursive https://github.com/JeffersonLab/mollerdb.git
+cd mollerdb
+
+# Build the Docker development image
+docker build -t mollerdb-dev .
+
+# Start an interactive development shell
+docker run -it --rm -v $(pwd):/workspace mollerdb-dev
+```
+
+Inside the container, all dependencies are pre-installed:
+
+```bash
+# Initialize git submodules (if not already done)
+git submodule update --init --recursive
+
+# Build and install the package in editable mode
+# Note: Use --break-system-packages in the container environment
+pip install -e . --verbose --break-system-packages
+
+# Run tests (when available)
+pytest tests/
+
+# Or work with C++ directly
+mkdir build && cd build
+cmake ..
+make
+```
+
+**Important Notes:**
+- Pre-built Docker images are automatically published to `ghcr.io/jeffersonlab/mollerdb` on pushes to main and on releases.
+- The Docker image requires network access during build to download Apache Arrow packages from `packages.apache.org`.
+- In restricted network environments, the Arrow installation may be skipped with a warning. To manually install Arrow later:
+  ```bash
+  # Inside the container
+  wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+  dpkg -i apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+  apt-get update
+  apt-get install libarrow-dev liblz4-dev libre2-dev
+  ```
+- When using `pip install` inside the container, add the `--break-system-packages` flag as shown above (this is safe in container environments).
+- **Security Note**: The Dockerfile includes SSL verification workarounds for environments with certificate issues. For production deployments, ensure proper SSL/TLS configuration and remove these workarounds.
+
+**What's included in the Docker image:**
+- Ubuntu 24.04 base system
+- GCC 14 with full C++23 support (required for sqlpp23)
+- CMake 3.28+
+- Node.js (from Ubuntu 24.04 repositories) and dbml-cli for database schema generation
+- PostgreSQL client libraries (libpq-dev)
+- Python 3.12 with pip
+- Python build tools: scikit-build-core, pybind11, pyparsing
+- Testing tools: pytest, wheel, build
+- A non-root `developer` user (UID 1001)
+
+**Common Docker workflows:**
+
+Run a one-off build:
+```bash
+docker run -it --rm -v $(pwd):/workspace mollerdb-dev bash -c "
+  git submodule update --init --recursive &&
+  pip install -e . --verbose --break-system-packages
+"
+```
+
+Run tests:
+```bash
+docker run -it --rm -v $(pwd):/workspace mollerdb-dev bash -c "
+  git submodule update --init --recursive &&
+  pip install -e . --verbose --break-system-packages &&
+  pytest tests/
+"
+```
+
+### Prerequisites (Native Installation)
 
 #### Linux (Ubuntu/Debian)
 

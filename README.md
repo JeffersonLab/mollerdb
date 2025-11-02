@@ -18,6 +18,8 @@ For details on the schema integration, see [schema/README.md](schema/README.md).
 
 ## Development
 
+### Local Development (Native)
+
 For local development, clone the repository and install in editable mode:
 
 ```bash
@@ -26,6 +28,61 @@ cd mollerdb
 git submodule update --init --recursive
 pip install -e .
 ```
+
+### Docker Development Environment
+
+A complete Docker development environment is provided with all dependencies pre-installed. This is the easiest way to get started.
+
+**Using pre-built image from GitHub Container Registry:**
+```bash
+# Pull the latest image
+docker pull ghcr.io/jeffersonlab/mollerdb:latest
+
+# Start a development shell
+docker run -it --rm -v $(pwd):/workspace ghcr.io/jeffersonlab/mollerdb:latest
+```
+
+**Building locally:**
+```bash
+docker build -t mollerdb-dev .
+```
+
+**Start a development shell:**
+```bash
+docker run -it --rm -v $(pwd):/workspace mollerdb-dev
+```
+
+Inside the container, you can build and test the project:
+```bash
+# Initialize submodules (if not already done on host)
+git submodule update --init --recursive
+
+# Build and install the package
+# Note: Use --break-system-packages in the container environment
+pip install -e . --verbose --break-system-packages
+
+# Run tests (when available)
+pytest tests/
+```
+
+**Run a one-off build command:**
+```bash
+docker run -it --rm -v $(pwd):/workspace mollerdb-dev bash -c "
+  git submodule update --init --recursive &&
+  pip install -e . --verbose --break-system-packages
+"
+```
+
+The Docker image includes:
+- Ubuntu 24.04 base
+- GCC 14 with C++23 support
+- CMake 3.28+
+- Node.js and dbml-cli for schema generation
+- PostgreSQL client libraries (libpq)
+- Python 3.12 with pip
+- All Python build dependencies (scikit-build-core, pybind11, pyparsing, pytest, wheel, build)
+
+For more details, see the comments in the `Dockerfile`. The Docker image is automatically built and published to the GitHub Container Registry on pushes to main and on releases.
 
 ## Releasing
 
